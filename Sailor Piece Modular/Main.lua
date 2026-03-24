@@ -5,7 +5,8 @@
 local Config = {
     HubName = "Sailor Piece Hub Pro",
     Version = "1.0.0",
-    BaseURL = "COLOQUE_AQUI_O_LINK_RAW_DA_PASTA_DO_GITHUB/" -- Ex: "https://raw.githubusercontent.com/SeuNome/Repo/main/"
+    -- Link base do seu repositório (apontando para a raiz "main")
+    BaseURL = "https://raw.githubusercontent.com/Noob1Code/Sailor-Piece-Hub-modular/main/"
 }
 
 local Core = {
@@ -14,9 +15,9 @@ local Core = {
     UI = nil
 }
 
--- 1. Baixar a UI do GitHub
+-- 1. Baixar a UI do GitHub (Puxando da subpasta "Ui")
 print("[Loader] Baixando UI...")
-local uiCode = game:HttpGet(Config.BaseURL .. "UI.lua")
+local uiCode = game:HttpGet(Config.BaseURL .. "Ui/UI.lua")
 Core.UI = loadstring(uiCode)()
 
 -- 2. Sistema de Registro
@@ -28,14 +29,13 @@ function Core:RegisterModule(name, category, moduleTable)
     print("[Core] Registrado: " .. name)
 end
 
--- 3. Baixar e Registrar Módulos
+-- 3. Baixar e Registrar Módulos (Puxando da subpasta "Modules")
 print("[Loader] Baixando Módulos...")
 
-local autoFarmCode = game:HttpGet(Config.BaseURL .. "AutoFarm.lua")
+-- Auto Farm
+local autoFarmCode = game:HttpGet(Config.BaseURL .. "Modules/AutoFarm.lua")
 local AutoFarmModule = loadstring(autoFarmCode)()
 Core:RegisterModule("Auto Farm (Qualquer Mob)", "Farm & Nível", AutoFarmModule)
-
--- (Nas próximas etapas adicionaremos o AutoBoss.lua, Piloto.lua, etc. aqui embaixo)
 
 -- 4. Inicializar Tudo
 function Core:Init()
