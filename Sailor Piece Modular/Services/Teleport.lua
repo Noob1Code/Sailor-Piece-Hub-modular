@@ -5,7 +5,7 @@ local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
-local GameData = Import("Modules/GameData")
+local GameData = Import("Config/GameData")
 
 local LP = Players.LocalPlayer
 local UI = Import("Ui/UI") 
