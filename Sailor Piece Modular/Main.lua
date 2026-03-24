@@ -3,7 +3,7 @@
 -- ========================================================================
 
 -- A URL Base exata apontando para dentro da sua pasta principal
-local REPO_URL = "https://github.com/Noob1Code/Sailor-Piece-Hub-modular/tree/main/Sailor%20Piece%20Modular"
+local REPO_URL = "https://raw.githubusercontent.com/Noob1Code/Sailor-Piece-Hub-modular/main/Sailor%20Piece%20Modular/"
 local moduleCache = {}
 
 -- ⚙️ SISTEMA DE IMPORTAÇÃO (Evita crashes e faz cache)
