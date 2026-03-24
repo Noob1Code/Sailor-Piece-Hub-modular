@@ -1,5 +1,5 @@
 -- ========================================================================
--- 📦 MÓDULO: AUTO QUEST UNITÁRIA (COM FILTROS E TELEPORTE INTELIGENTE)
+-- 📦 MÓDULO: AUTO QUEST UNITÁRIA (COM TELEPORTE BASEADO EM DISTÂNCIA)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -20,14 +20,13 @@ function Module:Init()
     self.FarmTarget = nil
     self.OrbitAngle = 0
 
-    -- BANCO DE DADOS EXATO
     self.QuestDataMap = {
         ["Starter"] = {{Name = "Quest 1: Mobs (Thief)", NPC = "QuestNPC1", Target = "Thief", Type = "Mob"}, {Name = "Quest 2: Boss (Thief Boss)", NPC = "QuestNPC2", Target = "ThiefBoss", Type = "Boss"}},
         ["Jungle"] = {{Name = "Quest 3: Mobs (Monkey)", NPC = "QuestNPC3", Target = "Monkey", Type = "Mob"}, {Name = "Quest 4: Boss (Monkey Boss)", NPC = "QuestNPC4", Target = "MonkeyBoss", Type = "Boss"}},
         ["Desert"] = {{Name = "Quest 5: Mobs (Bandits)", NPC = "QuestNPC5", Target = "DesertBandit", Type = "Mob"}, {Name = "Quest 6: Boss (Desert Boss)", NPC = "QuestNPC6", Target = "DesertBoss", Type = "Boss"}},
         ["Snow"] = {{Name = "Quest 7: Mobs (Frost Rogue)", NPC = "QuestNPC7", Target = "FrostRogue", Type = "Mob"}, {Name = "Quest 8: Boss (Snow Boss)", NPC = "QuestNPC8", Target = "SnowBoss", Type = "Boss"}},
         ["Sailor"] = {{Name = "Âncora Sailor", NPC = "JinwooMovesetNPC", Target = "Nenhum", Type = "Mob"}},
-        ["Shibuya"] = {{Name = "Quest 9: Mobs (Sorcerer)", NPC = "QuestNPC9", Target = "Sorcerer", Type = "Mob"}, {Name = "Quest 10: Mobs (Panda Sorcerer)", NPC = "QuestNPC10", Target = "PandaMiniBoss", Type = "Boss"}},
+        ["Shibuya Station"] = {{Name = "Quest 9: Mobs (Sorcerer)", NPC = "QuestNPC9", Target = "Sorcerer", Type = "Mob"}, {Name = "Quest 10: Mobs (Panda Sorcerer)", NPC = "QuestNPC10", Target = "PandaMiniBoss", Type = "Boss"}},
         ["Hueco Mundo"] = {{Name = "Quest 11: Mobs (Hollow)", NPC = "QuestNPC11", Target = "Hollow", Type = "Mob"}},
         ["Shinjuku"] = {{Name = "Quest 12: Mobs", NPC = "QuestNPC12", Target = "StrongSorcerer", Type = "Mob"}, {Name = "Quest 13: Mobs", NPC = "QuestNPC13", Target = "Curse", Type = "Mob"}},
         ["Slime"] = {{Name = "Quest 14: Mobs (Slime)", NPC = "QuestNPC14", Target = "Slime", Type = "Mob"}},
@@ -38,30 +37,18 @@ function Module:Init()
     }
 
     self.IslandsInOrder = {
-        "Starter", "Jungle", "Desert", "Snow", "Sailor", "Shibuya",
-        "Hueco Mundo", "Shinjuku", "Slime", "Academy", "Judgement", "Soul Society", "Boss Island"
-    }
-
-    self.TeleportMap = {
-        ["Starter"] = "Starter", ["Jungle"] = "Jungle", ["Desert"] = "Desert",
-        ["Snow"] = "Snow", ["Sailor"] = "Sailor", ["Shibuya"] = "Shibuya",
-        ["Hueco Mundo"] = "HuecoMundo", ["Boss Island"] = "Boss", ["Dungeon"] = "Dungeon",
-        ["Shinjuku"] = "Shinjuku", ["Slime"] = "Slime", ["Academy"] = "Academy",
-        ["Judgement"] = "Judgement", ["Soul Society"] = "SoulSociety"
+        "Starter", "Jungle", "Desert", "Snow", "Sailor", "Shibuya Station",
+        "Hueco Mundo", "Boss Island", "Shinjuku", "Slime", "Academy", "Judgement", "Soul Society"
     }
 
     self.SelectedIsland = self.IslandsInOrder[1]
     self.SelectedQuest = self.QuestDataMap[self.SelectedIsland][1]
     self.SelectedQuest.Island = self.SelectedIsland
 
-    self.TeleportRemote = ReplicatedStorage:FindFirstChild("TeleportToPortal", true)
     self.CombatRemote = pcall(function() return ReplicatedStorage:WaitForChild("CombatSystem"):WaitForChild("Remotes"):WaitForChild("RequestHit") end) and ReplicatedStorage.CombatSystem.Remotes.RequestHit or nil
     self.AbilityRemote = pcall(function() return ReplicatedStorage:WaitForChild("AbilitySystem"):WaitForChild("Remotes"):WaitForChild("RequestAbility") end) and ReplicatedStorage.AbilitySystem.Remotes.RequestAbility or nil
 end
 
--- ========================================================================
--- ⚙️ LÓGICA DE DETECÇÃO (Correção do Conflito de Nomes)
--- ========================================================================
 function Module:IsQuestActive(targetName)
     if targetName == "Nenhum" then return false end
     local pg = LP:FindFirstChild("PlayerGui")
@@ -106,15 +93,11 @@ function Module:GetClosestMob(mobName, mobType)
         local hum = npc:FindFirstChild("Humanoid")
         local npcBase = npc:FindFirstChild("HumanoidRootPart")
         if hum and hum.Health > 0 and npcBase and not npc:GetAttribute("IsTrainingDummy") then
-            
-            -- Match Exato (Tira números e espaços para garantir que Thief1 == Thief)
             local cleanNpcName = npc.Name:gsub("%d+", ""):lower():gsub("%s+", "")
             local cleanTarget = mobName:lower():gsub("%s+", "")
             
             if cleanNpcName == cleanTarget then
-                -- Filtro de Tipo (Garante que ThiefBoss não seja morto no lugar do Thief)
                 local isBoss = npc.Name:lower():find("boss") or npc:GetAttribute("Boss") or npc:GetAttribute("_IsTimedBoss")
-                
                 if mobType == "Boss" and not isBoss then continue end
                 if mobType == "Mob" and isBoss then continue end
 
@@ -140,7 +123,7 @@ function Module:EquipWeapon()
 end
 
 -- ========================================================================
--- 🖥️ CRIADOR DE DROPDOWN DINÂMICO INTERNO
+-- 🖥️ CRIADOR DE DROPDOWN
 -- ========================================================================
 local function CreateDynamicDropdown(container, defaultText, options, callback)
     local dropdownFrame = Instance.new("Frame")
@@ -192,7 +175,6 @@ local function CreateDynamicDropdown(container, defaultText, options, callback)
             optBtn.Font = Enum.Font.GothamSemibold
             optBtn.TextSize = 12
             
-            -- Se for tabela (Missão), pega o Name. Se for string (Ilha), pega ela mesma.
             local displayText = type(option) == "table" and option.Name or option
             optBtn.Text = displayText
             optBtn.Parent = optionsContainer
@@ -212,7 +194,6 @@ local function CreateDynamicDropdown(container, defaultText, options, callback)
 
     populate(options)
     
-    -- Retorna uma função que permite atualizar a lista em tempo real!
     return {
         Refresh = function(newOptions, resetText)
             defaultText = resetText
@@ -222,9 +203,6 @@ local function CreateDynamicDropdown(container, defaultText, options, callback)
     }
 end
 
--- ========================================================================
--- 🖥️ INÍCIO DA UI E SISTEMA
--- ========================================================================
 function Module:Start()
     local tabName = "Missões"
     UI:CreateSection(tabName, "Auto Quest Específico")
@@ -232,7 +210,6 @@ function Module:Start()
     local container = UI.Tabs[tabName].Container
     local questDropdown
 
-    -- Dropdown 1: Selecionar a Ilha
     CreateDynamicDropdown(container, "🌍 Ilha: " .. self.SelectedIsland, self.IslandsInOrder, function(island)
         self.SelectedIsland = island
         local newQuests = self.QuestDataMap[island]
@@ -240,11 +217,9 @@ function Module:Start()
         self.SelectedQuest = newQuests[1]
         self.SelectedQuest.Island = island
         
-        -- Atualiza as opções do Dropdown de Missões com as missões da ilha selecionada!
         questDropdown.Refresh(newQuests, "📜 Missão: " .. self.SelectedQuest.Name)
     end)
 
-    -- Dropdown 2: Selecionar a Missão
     questDropdown = CreateDynamicDropdown(container, "📜 Missão: " .. self.SelectedQuest.Name, self.QuestDataMap[self.SelectedIsland], function(quest)
         self.SelectedQuest = quest
         self.SelectedQuest.Island = self.SelectedIsland
@@ -256,8 +231,18 @@ function Module:Start()
 end
 
 -- ========================================================================
--- 🔄 LOOPS DE FARM E TELEPORTE
+-- 🔄 LÓGICA DE TELEPORTE POR DISTÂNCIA
 -- ========================================================================
+local function NeedsTeleport(hrp, npc)
+    if not npc then return true end
+    local npcBase = npc:FindFirstChild("HumanoidRootPart")
+    if not npcBase then return true end
+    
+    -- Calcula a distância exata. Se for maior que 800, estamos na ilha errada.
+    local dist = (hrp.Position - npcBase.Position).Magnitude
+    return dist > 800
+end
+
 function Module:StartFarm()
     self.IsRunning = true
 
@@ -273,48 +258,30 @@ function Module:StartFarm()
             local qIsland = self.SelectedQuest.Island
             local qType = self.SelectedQuest.Type
 
-            -- Âncoras (Não tem missão, só serve pra ficar lá)
+            local serviceFolder = Workspace:FindFirstChild("ServiceNPCs")
+            local npc = serviceFolder and serviceFolder:FindFirstChild(qNPC)
+
+            -- 🛑 VERIFICAÇÃO DE ILHA (A MÁGICA ACONTECE AQUI)
+            if NeedsTeleport(hrp, npc) then
+                print("🗺️ Longe do alvo! Teleportando para a ilha: " .. qIsland)
+                TeleportService:TeleportToIsland(qIsland)
+                task.wait(4) -- Dá tempo para a tela de carregamento do teleporte sumir
+                continue
+            end
+
+            -- Âncoras (Não tem missão de combate)
             if qTarget == "Nenhum" then
                 self.FarmTarget = nil
-                local serviceFolder = Workspace:FindFirstChild("ServiceNPCs")
-                local npc = serviceFolder and serviceFolder:FindFirstChild(qNPC)
-                
-                if not npc then
-                    if self.TeleportRemote and self.TeleportMap[qIsland] then
-                        local hum = char:FindFirstChild("Humanoid")
-                        if hum then hum.PlatformStand = false end
-                        pcall(function() self.TeleportRemote:FireServer(self.TeleportMap[qIsland]) end)
-                        task.wait(4) -- Espera carregar o mapa
-                    end
-                    continue
-                end
-
-                if npc:FindFirstChild("HumanoidRootPart") then
+                if npc and npc:FindFirstChild("HumanoidRootPart") then
                     TeleportService:FlyToNPC(qNPC)
                 end
                 continue
             end
 
-            -- Pega a Quest
+            -- Pegar a Quest de Combate
             if not self:IsQuestActive(qTarget) then
                 self.FarmTarget = nil 
-                local serviceFolder = Workspace:FindFirstChild("ServiceNPCs")
-                local npc = serviceFolder and serviceFolder:FindFirstChild(qNPC)
-                
-                -- Se o NPC da missão não existe no mapa, viaja pra lá!
-                if not npc then
-                    print("🗺️ Viajando para a ilha: " .. qIsland)
-                    if self.TeleportRemote and self.TeleportMap[qIsland] then
-                        local hum = char:FindFirstChild("Humanoid")
-                        if hum then hum.PlatformStand = false end
-                        pcall(function() self.TeleportRemote:FireServer(self.TeleportMap[qIsland]) end)
-                        task.wait(4)
-                    end
-                    continue
-                end
-
-                -- Se o NPC existe, voa e interage
-                if npc:FindFirstChild("HumanoidRootPart") then
+                if npc and npc:FindFirstChild("HumanoidRootPart") then
                     TeleportService:FlyToNPC(qNPC)
                     task.wait(0.2)
                     local prompt = npc:FindFirstChildWhichIsA("ProximityPrompt", true)
@@ -324,7 +291,7 @@ function Module:StartFarm()
                     end
                 end
             else
-                -- Missão ativa! Procura o alvo exato (Filtro Mob vs Boss ativado)
+                -- Missão ativa! Procura o mob
                 if not self.FarmTarget or not self.FarmTarget:FindFirstChild("Humanoid") or self.FarmTarget.Humanoid.Health <= 0 then
                     self.FarmTarget = self:GetClosestMob(qTarget, qType)
                 end
@@ -335,7 +302,7 @@ function Module:StartFarm()
                         hum.PlatformStand = true
                         hrp.Velocity = Vector3.zero
                         
-                        -- Voo Orbital
+                        -- Voo Orbital em volta do alvo
                         self.OrbitAngle = self.OrbitAngle + math.rad(15)
                         local radius = 8
                         local height = 5
