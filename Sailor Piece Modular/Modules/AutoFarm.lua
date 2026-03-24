@@ -1,17 +1,19 @@
+-- ========================================================================
+-- 📦 MÓDULO: AUTO FARM (GENÉRICO) - REFATORADO
+-- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LP = Players.LocalPlayer
+
+local UI = Import("Ui/UI")
+local CombatService = Import("Services/CombatService") -- O nosso Músculo!
 
 local Module = {}
 
 function Module:Init()
     self.IsRunning = false
-    self.MoveLoop = nil
-    self.AttackLoop = nil
+    self.BrainLoop = nil
     self.Target = nil
-    self.CombatRemote = pcall(function() return ReplicatedStorage:WaitForChild("CombatSystem"):WaitForChild("Remotes"):WaitForChild("RequestHit") end) and ReplicatedStorage.CombatSystem.Remotes.RequestHit or nil
-    self.AbilityRemote = pcall(function() return ReplicatedStorage:WaitForChild("AbilitySystem"):WaitForChild("Remotes"):WaitForChild("RequestAbility") end) and ReplicatedStorage.AbilitySystem.Remotes.RequestAbility or nil
 end
 
 function Module:GetEnemy()
@@ -32,47 +34,24 @@ function Module:GetEnemy()
     return closest
 end
 
-function Module:EquipWeapon()
-    local char = LP.Character
-    if not char then return end
-    local tool = char:FindFirstChildOfClass("Tool")
-    if not tool then
-        local backpack = LP:FindFirstChild("Backpack")
-        if backpack then tool = backpack:FindFirstChildOfClass("Tool"); if tool then tool.Parent = char end end
-    end
-end
-
 function Module:Start()
     self.IsRunning = true
-    self.MoveLoop = task.spawn(function()
-        while self.IsRunning and task.wait() do
-            local char = LP.Character
-            local hrp = char and char:FindFirstChild("HumanoidRootPart")
-            local hum = char and char:FindFirstChild("Humanoid")
+    
+    -- Acorda o músculo
+    CombatService:Start()
 
+    -- O Cérebro: Apenas encontra o inimigo e diz ao músculo para atacar
+    self.BrainLoop = task.spawn(function()
+        while self.IsRunning and task.wait() do
             if not self.Target or not self.Target:FindFirstChild("Humanoid") or self.Target.Humanoid.Health <= 0 then
                 self.Target = self:GetEnemy()
             end
 
-            if self.Target and hrp and hum then
-                local targetHrp = self.Target:FindFirstChild("HumanoidRootPart")
-                if targetHrp then
-                    hrp.Velocity = Vector3.zero
-                    hum.PlatformStand = true
-                    hrp.CFrame = CFrame.new(targetHrp.Position - (targetHrp.CFrame.LookVector * 5) + Vector3.new(0, 5, 0), targetHrp.Position)
-                end
+            if self.Target then
+                -- true = usa o voo orbital (giratório). false = usa o voo fixo nas costas.
+                CombatService:SetTarget(self.Target, false) 
             else
-                if hum then hum.PlatformStand = false end
-            end
-        end
-    end)
-
-    self.AttackLoop = task.spawn(function()
-        while self.IsRunning and task.wait(0.1) do
-            if self.Target and self.Target:FindFirstChild("Humanoid") and self.Target.Humanoid.Health > 0 then
-                self:EquipWeapon()
-                if self.CombatRemote then pcall(function() self.CombatRemote:FireServer() end) end
-                if self.AbilityRemote then for i = 1, 4 do pcall(function() self.AbilityRemote:FireServer(i) end) end end
+                CombatService:SetTarget(nil, false) -- Pausa se não houver alvo
             end
         end
     end)
@@ -80,10 +59,10 @@ end
 
 function Module:Stop()
     self.IsRunning = false
-    if self.MoveLoop then task.cancel(self.MoveLoop); self.MoveLoop = nil end
-    if self.AttackLoop then task.cancel(self.AttackLoop); self.AttackLoop = nil end
-    local hum = LP.Character and LP.Character:FindFirstChild("Humanoid")
-    if hum then hum.PlatformStand = false end
+    if self.BrainLoop then task.cancel(self.BrainLoop); self.BrainLoop = nil end
+    
+    -- Manda o músculo descansar
+    CombatService:Stop()
     self.Target = nil
 end
 
