@@ -66,6 +66,10 @@ function Core:Start()
             self.UI:CreateToggle(module.Category, name, function(state)
                 module:Toggle(state)
             end)
+        else
+            if module.Start then
+                pcall(function() module:Start() end)
+            end
         end
     end
     print("🚀 Hub Online e Operante!")
