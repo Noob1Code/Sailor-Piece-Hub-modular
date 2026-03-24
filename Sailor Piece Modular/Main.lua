@@ -36,7 +36,8 @@ function Core:RegisterModule(name, category, moduleTable)
     self.Modules[name] = moduleTable
 end
 
--- 3. Baixar os Módulos (Vai colocando todos os seus arquivos aqui)
+local TeleportModule = Import("Modules/Teleport")
+Core:RegisterModule("Mundo & Teleporte", "Mundo & Teleporte", TeleportModule)
 local AutoFarmModule = Import("Modules/AutoFarm")
 Core:RegisterModule("Auto Farm (Qualquer Mob)", "Farm & Nível", AutoFarmModule)
 
@@ -59,11 +60,15 @@ end
 
 function Core:Start()
     self.UI:Start()
+    
     for name, module in pairs(self.Modules) do
-        self.UI:CreateToggle(module.Category, name, function(state)
-            module:Toggle(state)
-        end)
+        if not module.NoToggle then
+            self.UI:CreateToggle(module.Category, name, function(state)
+                module:Toggle(state)
+            end)
+        end
     end
+    print("🚀 Hub Online e Operante!")
 end
 
 Core:Init()
