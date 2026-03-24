@@ -1,5 +1,5 @@
 -- ========================================================================
--- 📦 MÓDULO: AUTO QUEST UNITÁRIA (COM TELEPORTE BASEADO EM DISTÂNCIA)
+-- 📦 MÓDULO: AUTO QUEST UNITÁRIA (COM GPS POR NPC ÂNCORA)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -36,6 +36,23 @@ function Module:Init()
         ["Boss Island"] = {{Name = "Âncora de Ilha", NPC = "SummonBossNPC", Target = "Nenhum", Type = "Mob"}}
     }
 
+    -- 📍 MAPEAMENTO INTELIGENTE: Liga cada NPC de volta à sua Ilha
+    self.NpcToIsland = {
+        ["QuestNPC1"] = "Starter", ["QuestNPC2"] = "Starter",
+        ["QuestNPC3"] = "Jungle", ["QuestNPC4"] = "Jungle",
+        ["QuestNPC5"] = "Desert", ["QuestNPC6"] = "Desert",
+        ["QuestNPC7"] = "Snow", ["QuestNPC8"] = "Snow",
+        ["JinwooMovesetNPC"] = "Sailor",
+        ["QuestNPC9"] = "Shibuya Station", ["QuestNPC10"] = "Shibuya Station",
+        ["QuestNPC11"] = "Hueco Mundo",
+        ["QuestNPC12"] = "Shinjuku", ["QuestNPC13"] = "Shinjuku",
+        ["QuestNPC14"] = "Slime",
+        ["QuestNPC15"] = "Academy",
+        ["QuestNPC16"] = "Judgement",
+        ["QuestNPC17"] = "Soul Society",
+        ["SummonBossNPC"] = "Boss Island"
+    }
+
     self.IslandsInOrder = {
         "Starter", "Jungle", "Desert", "Snow", "Sailor", "Shibuya Station",
         "Hueco Mundo", "Boss Island", "Shinjuku", "Slime", "Academy", "Judgement", "Soul Society"
@@ -49,6 +66,41 @@ function Module:Init()
     self.AbilityRemote = pcall(function() return ReplicatedStorage:WaitForChild("AbilitySystem"):WaitForChild("Remotes"):WaitForChild("RequestAbility") end) and ReplicatedStorage.AbilitySystem.Remotes.RequestAbility or nil
 end
 
+-- ========================================================================
+-- 📍 SISTEMA DE GPS BASEADO EM NPCS ÂNCORA
+-- ========================================================================
+function Module:GetCurrentIsland(hrp)
+    local closestIsland = nil
+    local minDist = math.huge
+    local serviceFolder = Workspace:FindFirstChild("ServiceNPCs")
+    
+    if not serviceFolder then return nil end
+
+    -- Procura o NPC de missão mais próximo para deduzir a ilha atual
+    for npcName, islandName in pairs(self.NpcToIsland) do
+        local npc = serviceFolder:FindFirstChild(npcName)
+        if npc and npc:FindFirstChild("HumanoidRootPart") then
+            local dist = (hrp.Position - npc.HumanoidRootPart.Position).Magnitude
+            if dist < minDist then
+                minDist = dist
+                closestIsland = islandName
+            end
+        end
+    end
+    
+    return closestIsland
+end
+
+function Module:NeedsTeleport(hrp, targetIsland)
+    local currentIsland = self:GetCurrentIsland(hrp)
+    -- Se não achou nenhum NPC próximo (tá no meio do mar, etc) ou se a ilha atual for diferente da alvo, precisa teleportar!
+    if not currentIsland then return true end
+    return currentIsland ~= targetIsland
+end
+
+-- ========================================================================
+-- ⚙️ LÓGICA DE COMBATE E QUEST
+-- ========================================================================
 function Module:IsQuestActive(targetName)
     if targetName == "Nenhum" then return false end
     local pg = LP:FindFirstChild("PlayerGui")
@@ -123,7 +175,7 @@ function Module:EquipWeapon()
 end
 
 -- ========================================================================
--- 🖥️ CRIADOR DE DROPDOWN
+-- 🖥️ UI E DROPDOWNS
 -- ========================================================================
 local function CreateDynamicDropdown(container, defaultText, options, callback)
     local dropdownFrame = Instance.new("Frame")
@@ -231,18 +283,8 @@ function Module:Start()
 end
 
 -- ========================================================================
--- 🔄 LÓGICA DE TELEPORTE POR DISTÂNCIA
+-- 🔄 LOOPS DE FARM
 -- ========================================================================
-local function NeedsTeleport(hrp, npc)
-    if not npc then return true end
-    local npcBase = npc:FindFirstChild("HumanoidRootPart")
-    if not npcBase then return true end
-    
-    -- Calcula a distância exata. Se for maior que 800, estamos na ilha errada.
-    local dist = (hrp.Position - npcBase.Position).Magnitude
-    return dist > 800
-end
-
 function Module:StartFarm()
     self.IsRunning = true
 
@@ -258,16 +300,16 @@ function Module:StartFarm()
             local qIsland = self.SelectedQuest.Island
             local qType = self.SelectedQuest.Type
 
-            local serviceFolder = Workspace:FindFirstChild("ServiceNPCs")
-            local npc = serviceFolder and serviceFolder:FindFirstChild(qNPC)
-
-            -- 🛑 VERIFICAÇÃO DE ILHA (A MÁGICA ACONTECE AQUI)
-            if NeedsTeleport(hrp, npc) then
-                print("🗺️ Longe do alvo! Teleportando para a ilha: " .. qIsland)
+            -- 🛑 O CÉREBRO DE GPS QUE VOCÊ SUGERIU 🛑
+            if self:NeedsTeleport(hrp, qIsland) then
+                print("🗺️ Localização divergente! Teleportando para: " .. qIsland)
                 TeleportService:TeleportToIsland(qIsland)
                 task.wait(4) -- Dá tempo para a tela de carregamento do teleporte sumir
                 continue
             end
+
+            local serviceFolder = Workspace:FindFirstChild("ServiceNPCs")
+            local npc = serviceFolder and serviceFolder:FindFirstChild(qNPC)
 
             -- Âncoras (Não tem missão de combate)
             if qTarget == "Nenhum" then
