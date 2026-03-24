@@ -10,19 +10,16 @@ local LP = Players.LocalPlayer
 local UI = Import("Ui/UI") 
 
 local Module = {
-    NoToggle = true -- Avisa o Main.lua para não criar o botão automático de Ligar/Desligar
+    NoToggle = true 
 }
 
 function Module:Init()
-    -- Lista em ordem para exibir na UI
     self.IslandsDisplay = {
         "Starter", "Jungle", "Desert", "Snow", "Sailor", "Shibuya Station", 
         "Hueco Mundo", "Boss Island", "Dungeon", "Shinjuku", "Slime", 
         "Academy", "Judgement", "Soul Society"
     }
-    self.CurrentIslandIndex = 1
-
-    -- Tradutor: Nome da UI -> Nome do Jogo
+    
     self.TeleportMap = {
         ["Starter"] = "Starter", ["Jungle"] = "Jungle", ["Desert"] = "Desert",
         ["Snow"] = "Snow", ["Sailor"] = "Sailor", ["Shibuya Station"] = "Shibuya",
@@ -37,14 +34,14 @@ function Module:Init()
         "RimuruMasteryNPC", "SkillTreeNPC", "Katana", "MadokaBuyer", 
         "HakiQuestNPC", "SummonBossNPC"
     }
-    self.CurrentNpcIndex = 1
+
+    -- Variáveis para guardar o que o usuário escolheu no Dropdown
+    self.SelectedIsland = self.IslandsDisplay[1]
+    self.SelectedNpc = self.NpcList[1]
 
     self.TeleportRemote = ReplicatedStorage:FindFirstChild("TeleportToPortal", true)
 end
 
--- ========================================================================
--- 🚀 FUNÇÕES PÚBLICAS (Outros Módulos usarão isto!)
--- ========================================================================
 function Module:FlyTo(targetPos)
     local char = LP.Character
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
@@ -52,7 +49,7 @@ function Module:FlyTo(targetPos)
 
     if hrp and hum then
         local distance = (hrp.Position - targetPos).Magnitude
-        local tempo = math.max(0.1, distance / 150) -- Velocidade de voo adaptável
+        local tempo = math.max(0.1, distance / 150)
 
         hum.PlatformStand = true
         hrp.Velocity = Vector3.zero
@@ -79,72 +76,46 @@ end
 
 function Module:TeleportToIsland(displayName)
     if self.TeleportRemote then
-        -- Traduz o nome da UI para o nome que o servidor entende
         local serverIslandName = self.TeleportMap[displayName]
-
         if serverIslandName then
             local char = LP.Character
             local hum = char and char:FindFirstChild("Humanoid")
             if hum then hum.PlatformStand = false end 
-            
             pcall(function() self.TeleportRemote:FireServer(serverIslandName) end)
-        else
-            print("❌ Erro: Ilha não mapeada no tradutor: " .. tostring(displayName))
         end
     end
 end
 
 -- ========================================================================
--- 🖥️ CONSTRUÇÃO DA UI
+-- 🖥️ CONSTRUÇÃO DA UI (Agora com Dropdowns!)
 -- ========================================================================
 function Module:Start()
     local tabName = "Mundo & Teleporte"
-    local container = UI.Tabs[tabName].Container
 
     -- --- SEÇÃO DE ILHAS ---
     UI:CreateSection(tabName, "Viagem Interdimensional")
 
-    local islandBtn = Instance.new("TextButton")
-    islandBtn.Size = UDim2.new(1, -10, 0, 35)
-    islandBtn.BackgroundColor3 = Color3.fromRGB(50, 100, 200)
-    islandBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    islandBtn.Font = Enum.Font.GothamBold
-    islandBtn.TextSize = 13
-    islandBtn.Text = "📍 Ilha: " .. self.IslandsDisplay[self.CurrentIslandIndex] .. " (Clique)"
-    islandBtn.Parent = container
-    Instance.new("UICorner", islandBtn).CornerRadius = UDim.new(0, 4)
-
-    islandBtn.MouseButton1Click:Connect(function()
-        self.CurrentIslandIndex = self.CurrentIslandIndex + 1
-        if self.CurrentIslandIndex > #self.IslandsDisplay then self.CurrentIslandIndex = 1 end
-        islandBtn.Text = "📍 Ilha: " .. self.IslandsDisplay[self.CurrentIslandIndex] .. " (Clique)"
+    -- Cria o Dropdown das Ilhas
+    UI:CreateDropdown(tabName, "📍 Escolha a Ilha", self.IslandsDisplay, function(selected)
+        self.SelectedIsland = selected
     end)
 
+    -- Botão que executa a viagem para a ilha selecionada no dropdown
     UI:CreateButton(tabName, "🔮 Teleportar", function()
-        self:TeleportToIsland(self.IslandsDisplay[self.CurrentIslandIndex])
+        self:TeleportToIsland(self.SelectedIsland)
     end)
 
     -- --- SEÇÃO DE NPCS ---
     UI:CreateSection(tabName, "Localizador de Serviços")
 
-    local npcBtn = Instance.new("TextButton")
-    npcBtn.Size = UDim2.new(1, -10, 0, 35)
-    npcBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 100)
-    npcBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    npcBtn.Font = Enum.Font.GothamBold
-    npcBtn.TextSize = 13
-    npcBtn.Text = "👤 NPC: " .. self.NpcList[self.CurrentNpcIndex] .. " (Clique)"
-    npcBtn.Parent = container
-    Instance.new("UICorner", npcBtn).CornerRadius = UDim.new(0, 4)
-
-    npcBtn.MouseButton1Click:Connect(function()
-        self.CurrentNpcIndex = self.CurrentNpcIndex + 1
-        if self.CurrentNpcIndex > #self.NpcList then self.CurrentNpcIndex = 1 end
-        npcBtn.Text = "👤 NPC: " .. self.NpcList[self.CurrentNpcIndex] .. " (Clique)"
+    -- Cria o Dropdown dos NPCs
+    UI:CreateDropdown(tabName, "👤 Escolha o NPC", self.NpcList, function(selected)
+        self.SelectedNpc = selected
     end)
 
+    -- Botão que voa até o NPC selecionado no dropdown
     UI:CreateButton(tabName, "✈️ Voar até NPC", function()
-        self:FlyToNPC(self.NpcList[self.CurrentNpcIndex])
+        self:FlyToNPC(self.SelectedNpc)
     end)
 end
 
