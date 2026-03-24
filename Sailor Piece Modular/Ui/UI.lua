@@ -220,6 +220,19 @@ function UI:CreateButton(tabName, text, callback)
     end)
 end
 
+function UI:CreateSection(tabName, text)
+    local container = self.Tabs[tabName].Container
+    
+    local sectionLbl = Instance.new("TextLabel")
+    sectionLbl.Size = UDim2.new(1, -10, 0, 25)
+    sectionLbl.BackgroundTransparency = 1
+    sectionLbl.TextColor3 = Color3.fromRGB(150, 150, 255)
+    sectionLbl.Font = Enum.Font.GothamBlack
+    sectionLbl.TextSize = 14
+    sectionLbl.Text = "--- " .. string.upper(text) .. " ---"
+    sectionLbl.Parent = container
+end
+
 function UI:Start()
     self:CreateTab("Farm & Nível")
     self:CreateTab("Missões")
