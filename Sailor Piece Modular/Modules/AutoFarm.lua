@@ -227,10 +227,12 @@ function Module:StartFarm()
         while self.IsRunning and task.wait() do
 
             if PriorityService:GetPermittedTask() ~= "AutoFarm" then
-                CombatService:SetTarget(nil, false) -- Tira a arma e para de bater
-                task.wait(1) -- Fica de boa esperando a vez dele voltar
-                continue -- Pula o resto do código e volta pro começo do while
+                CombatService:SetTarget(nil, false)
+                task.wait(1)
+                continue
             end
+
+            CombatService:Start()
                 
             local char = LP.Character
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
