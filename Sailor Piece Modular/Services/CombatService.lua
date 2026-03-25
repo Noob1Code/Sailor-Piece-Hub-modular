@@ -4,7 +4,8 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LP = Players.LocalPlayer
-local WeaponService = Import("Services/WeaponService")
+
+local WeaponService = Import("Services/WeaponService") 
 
 local CombatService = {
     IsActive = false,
@@ -18,11 +19,12 @@ local CombatService = {
 function CombatService:Init()
     self.CombatRemote = pcall(function() return ReplicatedStorage:WaitForChild("CombatSystem"):WaitForChild("Remotes"):WaitForChild("RequestHit") end) and ReplicatedStorage.CombatSystem.Remotes.RequestHit or nil
     self.AbilityRemote = pcall(function() return ReplicatedStorage:WaitForChild("AbilitySystem"):WaitForChild("Remotes"):WaitForChild("RequestAbility") end) and ReplicatedStorage.AbilitySystem.Remotes.RequestAbility or nil
+    self.FruitRemote = pcall(function() return ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("FruitPowerRemote") end) and ReplicatedStorage.RemoteEvents.FruitPowerRemote or nil
 end
 
 function CombatService:EquipFirstWeapon()
     local char = LP.Character
-    if not char then return end
+    if not char then return nil end
     local tool = char:FindFirstChildOfClass("Tool")
     if not tool then
         local backpack = LP:FindFirstChild("Backpack")
@@ -31,6 +33,7 @@ function CombatService:EquipFirstWeapon()
             if tool then tool.Parent = char end 
         end
     end
+    return tool and tool.Name or nil
 end
 
 function CombatService:SetTarget(targetEntity, useOrbit)
@@ -69,30 +72,41 @@ function CombatService:Start()
         end
     end)
 
-    -- LOOP 2: Ataque (Porrada e Skills usando as armas selecionadas!)
     self.AttackLoop = task.spawn(function()
+        local fruitKeys = {Enum.KeyCode.Z, Enum.KeyCode.X, Enum.KeyCode.C, Enum.KeyCode.V}
+
         while self.IsActive and task.wait(0.1) do
             if self.Target and self.Target:FindFirstChild("Humanoid") and self.Target.Humanoid.Health > 0 then
                 
                 local weaponsToUse = WeaponService.SelectedWeapons
+                local namesToAttack = {}
 
-                -- Se a lista estiver vazia, apenas equipa a primeira que achar e bate
                 if #weaponsToUse == 0 then
-                    self:EquipFirstWeapon()
+                    local firstWep = self:EquipFirstWeapon()
+                    if firstWep then table.insert(namesToAttack, firstWep) end
+                else
+                    for _, wName in ipairs(weaponsToUse) do
+                        if WeaponService:EquipWeapon(wName) then
+                            table.insert(namesToAttack, wName)
+                        end
+                    end
+                end
+
+                for _, wName in ipairs(namesToAttack) do
                     if self.CombatRemote then pcall(function() self.CombatRemote:FireServer() end) end
+                    
                     if self.AbilityRemote then 
                         for i = 1, 4 do pcall(function() self.AbilityRemote:FireServer(i) end) end 
                     end
-                else
-                    -- Cicla por TODAS as armas da lista, equipando e soltando o combo inteiro!
-                    for _, wName in ipairs(weaponsToUse) do
-                        if WeaponService:EquipWeapon(wName) then
-                            -- Bate com clique normal
-                            if self.CombatRemote then pcall(function() self.CombatRemote:FireServer() end) end
-                            -- Usa as 4 skills daquela arma
-                            if self.AbilityRemote then 
-                                for i = 1, 4 do pcall(function() self.AbilityRemote:FireServer(i) end) end 
-                            end
+
+                    if self.FruitRemote then
+                        for _, key in ipairs(fruitKeys) do
+                            pcall(function()
+                                self.FruitRemote:FireServer("UseAbility", {
+                                    ["KeyCode"] = key,
+                                    ["FruitPower"] = wName
+                                })
+                            end)
                         end
                     end
                 end
