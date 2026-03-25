@@ -224,8 +224,6 @@ end
 function Module:Start()
     local tabName = "Missões"
     UI:CreateSection(tabName, "Auto Quest Específico")
-    local WeaponService = Import("Services/WeaponService")
-    WeaponService:BuildUI(tabName)
 
     local container = UI.Tabs[tabName].Container
     local questDropdown
@@ -247,6 +245,9 @@ function Module:Start()
 
     UI:CreateToggle(tabName, "Auto Quest Unitária", function(state)
         self:Toggle(state)
+
+    local WeaponService = Import("Services/WeaponService")
+    WeaponService:BuildUI(tabName)
     end)
 end
 
