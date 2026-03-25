@@ -4,9 +4,10 @@
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local LP = Players.LocalPlayer
-
 local UI = Import("Ui/UI")
 local CombatService = Import("Services/CombatService")
+local PriorityService = Import("Services/PriorityService")
+
 
 local Module = {
     NoToggle = true
@@ -78,18 +79,24 @@ end
 
 function Module:StartFarm()
     self.IsRunning = true
-    
-    -- Acorda o músculo
     CombatService:Start()
+
+    PriorityService:Request("AutoBoss")
 
     self.BrainLoop = task.spawn(function()
         while self.IsRunning and task.wait() do
+
+            if PriorityService:GetPermittedTask() ~= "AutoBoss" then
+                CombatService:SetTarget(nil, false)
+                task.wait(1)
+                continue
+            end
+                
             if not self.BossTarget or not self.BossTarget:FindFirstChild("Humanoid") or self.BossTarget.Humanoid.Health <= 0 then
                 self.BossTarget = self:GetBoss()
             end
 
             if self.BossTarget then
-                -- Para Bosses, usar voo orbital (true) costuma ser melhor para esquivar
                 CombatService:SetTarget(self.BossTarget, true) 
             else
                 CombatService:SetTarget(nil, false)
@@ -101,10 +108,9 @@ end
 function Module:StopFarm()
     self.IsRunning = false
     if self.BrainLoop then task.cancel(self.BrainLoop); self.BrainLoop = nil end
-    
-    -- Manda o músculo descansar
     CombatService:Stop()
     self.BossTarget = nil
+    PriorityService:Request("AutoBoss")
 end
 
 function Module:Toggle(state)
