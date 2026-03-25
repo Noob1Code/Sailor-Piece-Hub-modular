@@ -268,6 +268,7 @@ function Module:StartFarm()
                 task.wait(1)
                 continue
             end
+            CombatService:Start()
                 
             local char = LP.Character
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
