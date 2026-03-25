@@ -9,6 +9,7 @@ local TeleportService = Import("Services/Teleport")
 local GameData = Import("Config/GameData")
 local CombatService = Import("Services/CombatService")
 local SpawnService = Import("Services/SpawnService")
+local PriorityService = Import("Services/PriorityService")
 
 local Module = {
     NoToggle = true 
@@ -220,8 +221,17 @@ function Module:StartFarm()
     self.IsRunning = true
     CombatService:Start()
 
+    PriorityService:Request("AutoFarm")
+
     self.BrainLoop = task.spawn(function()
         while self.IsRunning and task.wait() do
+
+            if PriorityService:GetPermittedTask() ~= "AutoFarm" then
+                CombatService:SetTarget(nil, false) -- Tira a arma e para de bater
+                task.wait(1) -- Fica de boa esperando a vez dele voltar
+                continue -- Pula o resto do código e volta pro começo do while
+            end
+                
             local char = LP.Character
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
             if not hrp or self.SelectedMob == "Nenhum Mob" then continue end
@@ -261,6 +271,7 @@ function Module:StopFarm()
     if self.BrainLoop then task.cancel(self.BrainLoop); self.BrainLoop = nil end
     CombatService:Stop()
     self.Target = nil
+    PriorityService:Release("AutoFarm")
 end
 
 function Module:Toggle(state)
