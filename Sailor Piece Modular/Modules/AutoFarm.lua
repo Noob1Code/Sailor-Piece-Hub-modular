@@ -4,11 +4,11 @@
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local LP = Players.LocalPlayer
-
 local UI = Import("Ui/UI")
 local TeleportService = Import("Services/Teleport")
 local GameData = Import("Config/GameData")
 local CombatService = Import("Services/CombatService")
+local SpawnService = Import("Services/SpawnService")
 
 local Module = {
     NoToggle = true 
@@ -232,6 +232,13 @@ function Module:StartFarm()
                 print("🗺️ Localização divergente! Teleportando para: " .. self.SelectedIsland)
                 TeleportService:TeleportToIsland(self.SelectedIsland)
                 task.wait(4)
+                continue
+            end
+
+            if not SpawnService.SpawnSetado then
+                CombatService:SetTarget(nil, false)
+                SpawnService:SetSpawn()
+                task.wait(1)
                 continue
             end
 
