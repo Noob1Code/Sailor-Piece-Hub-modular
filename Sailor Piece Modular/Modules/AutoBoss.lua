@@ -91,6 +91,8 @@ function Module:StartFarm()
                 task.wait(1)
                 continue
             end
+
+            CombatService:Start()
                 
             if not self.BossTarget or not self.BossTarget:FindFirstChild("Humanoid") or self.BossTarget.Humanoid.Health <= 0 then
                 self.BossTarget = self:GetBoss()
