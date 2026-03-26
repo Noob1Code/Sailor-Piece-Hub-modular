@@ -46,7 +46,6 @@ GameData.NpcList = {
 }
 
 -- 4. Banco de Dados de Missões por Ilha
--- 4. Banco de Dados de Missões por Ilha
 GameData.QuestDataMap = {
     ["Starter"] = {
         {
