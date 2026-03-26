@@ -46,20 +46,167 @@ GameData.NpcList = {
 }
 
 -- 4. Banco de Dados de Missões por Ilha
+-- 4. Banco de Dados de Missões por Ilha
 GameData.QuestDataMap = {
-    ["Starter"] = {{Name = "Quest 1: Mobs (Thief)", NPC = "QuestNPC1", Target = "Thief", Type = "Mob"}, {Name = "Quest 2: Boss (Thief Boss)", NPC = "QuestNPC2", Target = "ThiefBoss", Type = "Boss"}},
-    ["Jungle"] = {{Name = "Quest 3: Mobs (Monkey)", NPC = "QuestNPC3", Target = "Monkey", Type = "Mob"}, {Name = "Quest 4: Boss (Monkey Boss)", NPC = "QuestNPC4", Target = "MonkeyBoss", Type = "Boss"}},
-    ["Desert"] = {{Name = "Quest 5: Mobs (Bandits)", NPC = "QuestNPC5", Target = "DesertBandit", Type = "Mob"}, {Name = "Quest 6: Boss (Desert Boss)", NPC = "QuestNPC6", Target = "DesertBoss", Type = "Boss"}},
-    ["Snow"] = {{Name = "Quest 7: Mobs (Frost Rogue)", NPC = "QuestNPC7", Target = "FrostRogue", Type = "Mob"}, {Name = "Quest 8: Boss (Snow Boss)", NPC = "QuestNPC8", Target = "SnowBoss", Type = "Boss"}},
-    ["Sailor"] = {{Name = "Âncora Sailor", NPC = "JinwooMovesetNPC", Target = "Nenhum", Type = "Mob"}},
-    ["Shibuya Station"] = {{Name = "Quest 9: Mobs (Sorcerer)", NPC = "QuestNPC9", Target = "Sorcerer", Type = "Mob"}, {Name = "Quest 10: Mobs (Panda Sorcerer)", NPC = "QuestNPC10", Target = "PandaMiniBoss", Type = "Boss"}},
-    ["Hollow Ilha"] = {{Name = "Quest 11: Mobs (Hollow)", NPC = "QuestNPC11", Target = "Hollow", Type = "Mob"}},
-    ["Shinjuku"] = {{Name = "Quest 12: Mobs", NPC = "QuestNPC12", Target = "StrongSorcerer", Type = "Mob"}, {Name = "Quest 13: Mobs", NPC = "QuestNPC13", Target = "Curse", Type = "Mob"}},
-    ["Slime"] = {{Name = "Quest 14: Mobs (Slime)", NPC = "QuestNPC14", Target = "Slime", Type = "Mob"}},
-    ["Academy"] = {{Name = "Quest 15: Mobs (Teacher)", NPC = "QuestNPC15", Target = "AcademyTeacher", Type = "Mob"}},
-    ["Judgement"] = {{Name = "Quest 16: Mobs", NPC = "QuestNPC16", Target = "Swordsman", Type = "Mob"}},
-    ["Soul Dominion"] = {{Name = "Quest 17: Mobs", NPC = "QuestNPC17", Target = "Quincy", Type = "Mob"}},
-    ["Boss Island"] = {{Name = "Âncora de Ilha", NPC = "SummonBossNPC", Target = "Nenhum", Type = "Mob"}}
+    ["Starter"] = {
+        {
+            Name = "Quest 1: Mobs (Thief)", 
+            NPC = "QuestNPC1", 
+            Target = "Thief", 
+            Tracker = "Caçador de Ladrões", 
+            Type = "Mob"
+        }, 
+        {
+            Name = "Quest 2: Boss (Thief Boss)", 
+            NPC = "QuestNPC2", 
+            Target = "ThiefBoss", 
+            Tracker = "Chefe dos Ladrões", 
+            Type = "Boss"
+        }
+    },
+    ["Jungle"] = {
+        {
+            Name = "Quest 3: Mobs (Monkey)", 
+            NPC = "QuestNPC3", 
+            Target = "Monkey", 
+            Tracker = "PREENCHER", 
+            Type = "Mob"
+        }, 
+        {
+            Name = "Quest 4: Boss (Monkey Boss)", 
+            NPC = "QuestNPC4", 
+            Target = "MonkeyBoss", 
+            Tracker = "PREENCHER", 
+            Type = "Boss"
+        }
+    },
+    ["Desert"] = {
+        {
+            Name = "Quest 5: Mobs (Bandits)", 
+            NPC = "QuestNPC5", 
+            Target = "DesertBandit", 
+            Tracker = "PREENCHER", 
+            Type = "Mob"
+        }, 
+        {
+            Name = "Quest 6: Boss (Desert Boss)", 
+            NPC = "QuestNPC6", 
+            Target = "DesertBoss", 
+            Tracker = "Chefe dos Bandidos do Deserto", -- Já preenchido!
+            Type = "Boss"
+        }
+    },
+    ["Snow"] = {
+        {
+            Name = "Quest 7: Mobs (Frost Rogue)", 
+            NPC = "QuestNPC7", 
+            Target = "FrostRogue", 
+            Tracker = "PREENCHER", 
+            Type = "Mob"
+        }, 
+        {
+            Name = "Quest 8: Boss (Snow Boss)", 
+            NPC = "QuestNPC8", 
+            Target = "SnowBoss", 
+            Tracker = "Guardião do Inverno", -- Já preenchido!
+            Type = "Boss"
+        }
+    },
+    ["Sailor"] = {
+        {
+            Name = "Âncora Sailor", 
+            NPC = "JinwooMovesetNPC", 
+            Target = "Nenhum", 
+            -- NPCs de âncora (Target = "Nenhum") não precisam de Tracker
+            Type = "Mob" 
+        }
+    },
+    ["Shibuya Station"] = {
+        {
+            Name = "Quest 9: Mobs (Sorcerer)", 
+            NPC = "QuestNPC9", 
+            Target = "Sorcerer", 
+            Tracker = "PREENCHER", 
+            Type = "Mob"
+        }, 
+        {
+            Name = "Quest 10: Mobs (Panda Sorcerer)", 
+            NPC = "QuestNPC10", 
+            Target = "PandaMiniBoss", 
+            Tracker = "Feiriceiro-Panda", -- Já preenchido!
+            Type = "Boss"
+        }
+    },
+    ["Hollow Ilha"] = {
+        {
+            Name = "Quest 11: Mobs (Hollow)", 
+            NPC = "QuestNPC11", 
+            Target = "Hollow", 
+            Tracker = "Caçador do Vácuo", -- Já preenchido!
+            Type = "Mob"
+        }
+    },
+    ["Shinjuku"] = {
+        {
+            Name = "Quest 12: Mobs", 
+            NPC = "QuestNPC12", 
+            Target = "StrongSorcerer", 
+            Tracker = "PREENCHER", 
+            Type = "Mob"
+        }, 
+        {
+            Name = "Quest 13: Mobs", 
+            NPC = "QuestNPC13", 
+            Target = "Curse", 
+            Tracker = "PREENCHER", 
+            Type = "Mob"
+        }
+    },
+    ["Slime"] = {
+        {
+            Name = "Quest 14: Mobs (Slime)", 
+            NPC = "QuestNPC14", 
+            Target = "Slime", 
+            Tracker = "PREENCHER", 
+            Type = "Mob"
+        }
+    },
+    ["Academy"] = {
+        {
+            Name = "Quest 15: Mobs (Teacher)", 
+            NPC = "QuestNPC15", 
+            Target = "AcademyTeacher", 
+            Tracker = "PREENCHER", 
+            Type = "Mob"
+        }
+    },
+    ["Judgement"] = {
+        {
+            Name = "Quest 16: Mobs", 
+            NPC = "QuestNPC16", 
+            Target = "Swordsman", 
+            Tracker = "PREENCHER", 
+            Type = "Mob"
+        }
+    },
+    ["Soul Dominion"] = {
+        {
+            Name = "Quest 17: Mobs", 
+            NPC = "QuestNPC17", 
+            Target = "Quincy", 
+            Tracker = "PREENCHER", 
+            Type = "Mob"
+        }
+    },
+    ["Boss Island"] = {
+        {
+            Name = "Âncora de Ilha", 
+            NPC = "SummonBossNPC", 
+            Target = "Nenhum", 
+            -- NPCs de âncora (Target = "Nenhum") não precisam de Tracker
+            Type = "Mob"
+        }
+    }
 }
 
 -- 5. Sistema de GPS: NPC -> Ilha
