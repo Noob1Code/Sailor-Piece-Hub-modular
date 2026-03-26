@@ -6,7 +6,7 @@ local GameData = {}
 -- 1. Lista de Ilhas na ordem que devem aparecer na UI
 GameData.IslandsInOrder = {
     "Starter", "Jungle", "Desert", "Snow", "Sailor", "Shibuya Station",
-    "Hollow Ilha", "Boss Island", "Shinjuku", "Slime", "Academy", "Judgement", "Soul Dominion"
+    "Hollow Island", "Boss Island", "Shinjuku", "Slime", "Academy", "Judgement", "Soul Dominion"
 }
 
 -- 2. Tradutor de Teleporte (Nome da UI -> Nome do Jogo)
@@ -17,7 +17,7 @@ GameData.TeleportMap = {
     ["Snow"] = "Snow", 
     ["Sailor"] = "Sailor", 
     ["Shibuya Station"] = "Shibuya",
-    ["Hollow Ilha"] = "HollowIsland", 
+    ["Hollow Island"] = "HollowIsland", 
     ["Boss Island"] = "Boss", 
     ["Dungeon"] = "Dungeon",
     ["Shinjuku"] = "Shinjuku", 
@@ -214,7 +214,7 @@ GameData.NpcToIsland = {
     ["QuestNPC7"] = "Snow", ["QuestNPC8"] = "Snow",
     ["JinwooMovesetNPC"] = "Sailor",
     ["QuestNPC9"] = "Shibuya Station", ["QuestNPC10"] = "Shibuya Station",
-    ["QuestNPC11"] = "Hueco Mundo",
+    ["QuestNPC11"] = "Hollow Island",
     ["QuestNPC12"] = "Shinjuku", ["QuestNPC13"] = "Shinjuku",
     ["QuestNPC14"] = "Slime",
     ["QuestNPC15"] = "Academy",
