@@ -52,14 +52,14 @@ GameData.QuestDataMap = {
             Name = "Quest 1: Mobs (Thief)", 
             NPC = "QuestNPC1", 
             Target = "Thief", 
-            Tracker = "Caçador de Ladrões", 
+            Tracker = "Thief Hunter", 
             Type = "Mob"
         }, 
         {
             Name = "Quest 2: Boss (Thief Boss)", 
             NPC = "QuestNPC2", 
             Target = "ThiefBoss", 
-            Tracker = "Chefe dos Ladrões", 
+            Tracker = "Thief Boss", 
             Type = "Boss"
         }
     },
@@ -68,14 +68,14 @@ GameData.QuestDataMap = {
             Name = "Quest 3: Mobs (Monkey)", 
             NPC = "QuestNPC3", 
             Target = "Monkey", 
-            Tracker = "Caçador de Macacos", 
+            Tracker = "Monkey Hunter", 
             Type = "Mob"
         }, 
         {
             Name = "Quest 4: Boss (Monkey Boss)", 
             NPC = "QuestNPC4", 
             Target = "MonkeyBoss", 
-            Tracker = "Chefe dos Macacos", 
+            Tracker = "Monkey Boss", 
             Type = "Boss"
         }
     },
@@ -84,14 +84,14 @@ GameData.QuestDataMap = {
             Name = "Quest 5: Mobs (Bandits)", 
             NPC = "QuestNPC5", 
             Target = "DesertBandit", 
-            Tracker = "Caçador de Bandidos do Deserto", 
+            Tracker = "Desert Bandit Hunter", 
             Type = "Mob"
         }, 
         {
             Name = "Quest 6: Boss (Desert Boss)", 
             NPC = "QuestNPC6", 
             Target = "DesertBoss", 
-            Tracker = "Chefe dos Bandidos do Deserto",
+            Tracker = "Desert Bandit Boss",
             Type = "Boss"
         }
     },
@@ -100,14 +100,14 @@ GameData.QuestDataMap = {
             Name = "Quest 7: Mobs (Frost Rogue)", 
             NPC = "QuestNPC7", 
             Target = "FrostRogue", 
-            Tracker = "Caçador Bandido do Gelo", 
+            Tracker = "Frost Rogue Hunter", 
             Type = "Mob"
         }, 
         {
             Name = "Quest 8: Boss (Snow Boss)", 
             NPC = "QuestNPC8", 
             Target = "SnowBoss", 
-            Tracker = "Chefe dos Guardiões do Inverno",
+            Tracker = "Winter Warden Boss",
             Type = "Boss"
         }
     },
@@ -124,14 +124,14 @@ GameData.QuestDataMap = {
             Name = "Quest 9: Mobs (Sorcerer)", 
             NPC = "QuestNPC9", 
             Target = "Sorcerer", 
-            Tracker = "Caçador Feiticeiro", 
+            Tracker = "Socerer Hunter", 
             Type = "Mob"
         }, 
         {
             Name = "Quest 10: Mobs (Panda Sorcerer)", 
             NPC = "QuestNPC10", 
             Target = "PandaMiniBoss", 
-            Tracker = "Chefe dos Feiriceiro-Panda",
+            Tracker = "Panda Socerer Boss",
             Type = "Boss"
         }
     },
@@ -140,7 +140,7 @@ GameData.QuestDataMap = {
             Name = "Quest 11: Mobs (Hollow)", 
             NPC = "QuestNPC11", 
             Target = "Hollow", 
-            Tracker = "Caçador do Vácuo",
+            Tracker = "Hollow Hunter",
             Type = "Mob"
         }
     },
@@ -149,14 +149,14 @@ GameData.QuestDataMap = {
             Name = "Quest 12: Mobs", 
             NPC = "QuestNPC12", 
             Target = "StrongSorcerer", 
-            Tracker = "Caçador de Feiticeiros Forte", 
+            Tracker = "Strong Sorcerer Hunter", 
             Type = "Mob"
         }, 
         {
             Name = "Quest 13: Mobs", 
             NPC = "QuestNPC13", 
             Target = "Curse", 
-            Tracker = "Caçador de Maldições", 
+            Tracker = "Curse Hunter",
             Type = "Mob"
         }
     },
@@ -165,7 +165,7 @@ GameData.QuestDataMap = {
             Name = "Quest 14: Mobs (Slime)", 
             NPC = "QuestNPC14", 
             Target = "Slime", 
-            Tracker = "Caçador de Guerreiros de Slime", 
+            Tracker = "Slime Warrior Hunter", 
             Type = "Mob"
         }
     },
@@ -174,7 +174,7 @@ GameData.QuestDataMap = {
             Name = "Quest 15: Mobs (Teacher)", 
             NPC = "QuestNPC15", 
             Target = "AcademyTeacher", 
-            Tracker = "Desafio da Academia", 
+            Tracker = "Academy Challenge", 
             Type = "Mob"
         }
     },
@@ -183,7 +183,7 @@ GameData.QuestDataMap = {
             Name = "Quest 16: Mobs", 
             NPC = "QuestNPC16", 
             Target = "Swordsman", 
-            Tracker = "Mestres de Lâminas", 
+            Tracker = "Blade Masters", 
             Type = "Mob"
         }
     },
@@ -192,7 +192,7 @@ GameData.QuestDataMap = {
             Name = "Quest 17: Mobs", 
             NPC = "QuestNPC17", 
             Target = "Quincy", 
-            Tracker = "Purificação de Quincy", 
+            Tracker = "Quincy Purge", 
             Type = "Mob"
         }
     },
