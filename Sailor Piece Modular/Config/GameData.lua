@@ -242,7 +242,16 @@ GameData.HiddenBosses = {
     ["Shibuya Station"] = {"YujiBoss", "SukunaBoss", "GojoBoss"},
     ["Hollow Island"] = {"AizenBoss"},
     ["Judgement"] = {"YamatoBoss"},
+}
+
+-- 8. Chefões de Invocação (Precisam disparar o Remote: SummonBossRemote)
+GameData.SummonBosses = {
     ["Boss Island"] = {"SaberBoss", "QinShiBoss", "IchigoBoss", "GilgameshBoss", "BlessedMaidenBoss", "SaberAlterBoss"}
+}
+
+-- 9. Chefões de Evento / Tempo (Requerem o "Sniper de Chat" para achar)
+GameData.TimedBosses = {
+    ["Eventos"] = {"MadokaBoss", "Rimuru"}
 }
 
 return GameData
