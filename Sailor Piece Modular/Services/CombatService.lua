@@ -71,11 +71,11 @@ function CombatService:Start()
             end
         end
     end)
-end
 
-self.AttackLoop = task.spawn(function()
+    self.AttackLoop = task.spawn(function()
         local fruitKeys = {Enum.KeyCode.Z, Enum.KeyCode.X, Enum.KeyCode.C, Enum.KeyCode.V}
 
+        -- Otimizado com debounce de 0.15s
         while self.IsActive and task.wait(0.15) do
             if self.Target and self.Target:FindFirstChild("Humanoid") and self.Target.Humanoid.Health > 0 then
                 
@@ -116,6 +116,7 @@ self.AttackLoop = task.spawn(function()
             end
         end
     end)
+end
 
 function CombatService:Stop()
     self.IsActive = false
