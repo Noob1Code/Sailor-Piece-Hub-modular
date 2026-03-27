@@ -227,7 +227,6 @@ function Module:StartFarm()
         while self.IsRunning and task.wait() do
 
             if PriorityService:GetPermittedTask() ~= "AutoFarm" then
-                CombatService:SetTarget(nil, false)
                 task.wait(1)
                 continue
             end
