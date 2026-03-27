@@ -6,17 +6,29 @@ local LP = Players.LocalPlayer
 
 local QuestService = {}
 
+-- 🔍 1. Busca a caixa oficial de missões do jogo na tela (AGORA À PROVA DE GHOST UI)
 function QuestService:GetQuestContainer()
     local pg = LP:FindFirstChild("PlayerGui")
     if not pg then return nil end
     
     local questUI = pg:FindFirstChild("QuestUI")
+    if questUI and questUI:IsA("ScreenGui") and not questUI.Enabled then
+        return nil
+    end
+    
     local q1 = questUI and questUI:FindFirstChild("Quest")
+    if q1 and not q1.Visible then
+        return nil
+    end
+    
     local q2 = q1 and q1:FindFirstChild("Quest")
     local holder = q2 and q2:FindFirstChild("Holder")
     local content = holder and holder:FindFirstChild("Content")
     
-    if content and content.Visible then return content end
+    if content and content.Visible then 
+        return content 
+    end
+    
     return nil
 end
 
