@@ -71,6 +71,7 @@ function CombatService:Start()
             end
         end
     end)
+end
 
 self.AttackLoop = task.spawn(function()
         local fruitKeys = {Enum.KeyCode.Z, Enum.KeyCode.X, Enum.KeyCode.C, Enum.KeyCode.V}
