@@ -13,7 +13,12 @@ local CombatService = {
     UseOrbit = false,
     OrbitAngle = 0,
     MoveLoop = nil,
-    AttackLoop = nil
+    AttackLoop = nil,
+    
+    -- 🔥 SISTEMA DE CONTROLE DE SPAM (Anti-Crash)
+    SkillQueue = {},
+    LastSkillTime = 0,
+    ThrottleDelay = 0.35 -- Dispara 1 habilidade a cada 0.35s (Salva a CPU e Rede)
 }
 
 function CombatService:Init()
@@ -44,6 +49,10 @@ end
 function CombatService:Start()
     if self.IsActive then return end
     self.IsActive = true
+    
+    -- Limpa a fila ao iniciar
+    self.SkillQueue = {}
+    self.LastSkillTime = 0
 
     self.MoveLoop = task.spawn(function()
         while self.IsActive and task.wait() do
@@ -75,39 +84,55 @@ function CombatService:Start()
     self.AttackLoop = task.spawn(function()
         local fruitKeys = {Enum.KeyCode.Z, Enum.KeyCode.X, Enum.KeyCode.C, Enum.KeyCode.V}
 
-        -- 🔥 Otimizado com debounce de 0.15s e sem vazamento de Threads
-        while self.IsActive and task.wait(0.15) do
+        -- O loop roda a cada 0.1s para ataques básicos
+        while self.IsActive and task.wait(0.1) do
             if self.Target and self.Target:FindFirstChild("Humanoid") and self.Target.Humanoid.Health > 0 then
                 
-                local weaponsToUse = WeaponService.SelectedWeapons
-                local namesToAttack = {}
-
-                if #weaponsToUse == 0 then
-                    local firstWep = self:EquipFirstWeapon()
-                    if firstWep then table.insert(namesToAttack, firstWep) end
-                else
-                    for _, wName in ipairs(weaponsToUse) do
-                        if WeaponService:EquipWeapon(wName) then
-                            table.insert(namesToAttack, wName)
-                        end
-                    end
-                end
-
-                for _, wName in ipairs(namesToAttack) do
-                    -- Ataque Básico
-                    if self.CombatRemote then pcall(function() self.CombatRemote:FireServer() end) end
+                -- 1. ATAQUE BÁSICO (Pode ser rápido, não trava o jogo)
+                if self.CombatRemote then pcall(function() self.CombatRemote:FireServer() end) end
+                
+                -- 2. FILA DE HABILIDADES (Executa 1 por vez com Throttle)
+                if tick() - self.LastSkillTime >= self.ThrottleDelay then
                     
-                    -- Habilidades (Espada/Melee)
-                    if self.AbilityRemote then 
-                        for i = 1, 4 do pcall(function() self.AbilityRemote:FireServer(i) end) end 
-                    end
+                    if #self.SkillQueue > 0 then
+                        -- Retira a primeira habilidade da fila e dispara
+                        local skillToCast = table.remove(self.SkillQueue, 1)
+                        
+                        if skillToCast.Type == "Ability" then
+                            if self.AbilityRemote then 
+                                pcall(function() self.AbilityRemote:FireServer(skillToCast.Key) end) 
+                            end
+                        elseif skillToCast.Type == "Fruit" then
+                            if self.FruitRemote then
+                                pcall(function() self.FruitRemote:FireServer("UseAbility", {["KeyCode"] = skillToCast.Key, ["FruitPower"] = skillToCast.Weapon}) end)
+                            end
+                        end
+                        
+                        -- Atualiza o tempo para garantir o delay da próxima
+                        self.LastSkillTime = tick()
+                    else
+                        -- Fila vazia? Vamos preencher com as habilidades da Arma Atual!
+                        local weaponsToUse = WeaponService.SelectedWeapons
+                        local wName = nil
 
-                    -- Habilidades (Fruta)
-                    if self.FruitRemote then
-                        for _, key in ipairs(fruitKeys) do
-                            pcall(function()
-                                self.FruitRemote:FireServer("UseAbility", {["KeyCode"] = key, ["FruitPower"] = wName})
-                            end)
+                        if #weaponsToUse == 0 then
+                            wName = self:EquipFirstWeapon()
+                        else
+                            -- 🔥 LIMITAÇÃO VITAL: Equipa APENAS a primeira arma da lista. 
+                            -- Impede o jogo de calcular física de 5 itens no mesmo frame.
+                            wName = weaponsToUse[1]
+                            WeaponService:EquipWeapon(wName)
+                        end
+
+                        if wName then
+                            -- Popula as skills numeradas (1, 2, 3, 4)
+                            for i = 1, 4 do
+                                table.insert(self.SkillQueue, {Type = "Ability", Key = i, Weapon = wName})
+                            end
+                            -- Popula as skills de fruta (Z, X, C, V)
+                            for _, k in ipairs(fruitKeys) do
+                                table.insert(self.SkillQueue, {Type = "Fruit", Key = k, Weapon = wName})
+                            end
                         end
                     end
                 end
@@ -120,8 +145,11 @@ end
 function CombatService:Stop()
     self.IsActive = false
     self.Target = nil
+    self.SkillQueue = {}
+    
     if self.MoveLoop then task.cancel(self.MoveLoop); self.MoveLoop = nil end
     if self.AttackLoop then task.cancel(self.AttackLoop); self.AttackLoop = nil end
+    
     local char = LP.Character
     local hum = char and char:FindFirstChild("Humanoid")
     if hum then hum.PlatformStand = false end
