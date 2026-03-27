@@ -152,7 +152,7 @@ local function CreateDynamicDropdown(container, defaultText, options, callback)
 end
 
 function Module:Start()
-    local tabName = "Auto Boss"
+    local tabName = "Chefes (Boss)"
     UI:CreateSection(tabName, "Filtro e Seleção")
     local container = UI.Tabs[tabName].Container
 
