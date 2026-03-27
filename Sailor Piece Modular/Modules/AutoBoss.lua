@@ -83,7 +83,7 @@ function Module:GetBossModel(targetName)
 end
 
 -- ========================================================================
--- 📡 SNIPER DE CHAT
+-- 📡 SNIPER DE CHAT (AGORA COM TRADUTOR)
 -- ========================================================================
 function Module:MonitorChat(msg)
     if not self.IsRunning then return end
@@ -92,17 +92,27 @@ function Module:MonitorChat(msg)
     local msgNoSpaces = text:gsub("%s+", "")
     
     for _, b in ipairs(self.BossQueue) do
-        local baseName = string.lower(b.Target:gsub("Boss", ""):gsub("Mini", "")):gsub("%s+", "")
+        -- 1. Verifica se existe uma tradução no GameData
+        local chatNameTranslation = GameData.BossChatNames and GameData.BossChatNames[b.Target]
+        local baseName
         
+        -- 2. Se tiver tradução, usa ela. Se não, usa a lógica antiga de limpar o nome.
+        if chatNameTranslation then
+            baseName = string.lower(chatNameTranslation):gsub("%s+", "")
+        else
+            baseName = string.lower(b.Target:gsub("Boss", ""):gsub("Mini", "")):gsub("%s+", "")
+        end
+        
+        -- 3. Procura o nome no chat
         if msgNoSpaces:find(baseName) then 
             if text:find("spawned") then
                 self.BossStateCache[b.Target] = "Alive"
                 self.DeadTimes[b.Target] = nil
-                print("🚨 [SNIPER] " .. b.Target .. " APARECEU NO CHAT! Interceptando...")
+                print("🚨 [SNIPER] O Boss " .. b.Target .. " apareceu no chat! Interceptando...")
             elseif text:find("defeated") then
                 self.BossStateCache[b.Target] = "Dead"
                 self.DeadTimes[b.Target] = tick()
-                print("💀 [SNIPER] " .. b.Target .. " foi derrotado.")
+                print("💀 [SNIPER] O Boss " .. b.Target .. " foi derrotado.")
             end
         end
     end
