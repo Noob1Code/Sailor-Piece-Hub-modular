@@ -180,7 +180,10 @@ function Module:Start()
         self.SelectedQuest.Island = self.SelectedIsland
     end)
 
-    UI:CreateToggle(tabName, "Auto Quest Unitária", function(state) self:Toggle(state) end)
+    UI:CreateToggle(tabName, "Auto Quest Unitária", function(state) 
+        self:Toggle(state) 
+    end)
+    
     local WeaponService = Import("Services/WeaponService")
     WeaponService:BuildUI(tabName)
 end
