@@ -1,8 +1,10 @@
 -- ========================================================================
--- 👑 MÓDULO: AUTO BOSS AVANÇADO (SISTEMA DE FILA)
+-- 👑 MÓDULO: AUTO BOSS AVANÇADO (FILA + SNIPER DE CHAT)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TextChatService = game:GetService("TextChatService")
 local LP = Players.LocalPlayer
 
 local UI = Import("Ui/UI")
@@ -15,29 +17,27 @@ local Module = { NoToggle = true }
 
 function Module:Init()
     self.IsRunning = false
-    self.BossQueue = {}
+    self.BossQueue = {} 
     self.AllBosses = {}
     
-    -- 1. Extrai os Bosses Padrões (Que têm Missão)
+    self.ChatConnections = {}
+    self.BossStateCache = {} -- "Alive", "Dead", ou "PendingCheck"
+    self.DeadTimes = {}      -- Salva o tick() de quando o boss morreu
+    
+    -- 1. Extrai os Chefes Silenciosos (Que têm Missão)
     for island, quests in pairs(GameData.QuestDataMap) do
         for _, q in ipairs(quests) do
             if q.Type == "Boss" then
-                table.insert(self.AllBosses, {
-                    Target = q.Target,
-                    Island = island
-                })
+                table.insert(self.AllBosses, { Target = q.Target, Island = island })
             end
         end
     end
 
-    -- 2. Extrai os Bosses Ocultos e de Eventos (Que NÃO têm Missão)
-    if GameData.HiddenBosses then
-        for island, bosses in pairs(GameData.HiddenBosses) do
+    -- 2. Extrai os Chefes de Tempo (Que avisam no Chat)
+    if GameData.TimedBosses then
+        for island, bosses in pairs(GameData.TimedBosses) do
             for _, bossName in ipairs(bosses) do
-                table.insert(self.AllBosses, {
-                    Target = bossName,
-                    Island = island
-                })
+                table.insert(self.AllBosses, { Target = bossName, Island = island })
             end
         end
     end
@@ -83,9 +83,59 @@ function Module:GetBossModel(targetName)
 end
 
 -- ========================================================================
--- 🖥️ UI: COMPONENTES DINÂMICOS
+-- 📡 SNIPER DE CHAT
+-- ========================================================================
+function Module:MonitorChat(msg)
+    if not self.IsRunning then return end
+    
+    local text = string.lower(msg)
+    local msgNoSpaces = text:gsub("%s+", "")
+    
+    for _, b in ipairs(self.BossQueue) do
+        local baseName = string.lower(b.Target:gsub("Boss", ""):gsub("Mini", "")):gsub("%s+", "")
+        
+        if msgNoSpaces:find(baseName) then 
+            if text:find("spawned") then
+                self.BossStateCache[b.Target] = "Alive"
+                self.DeadTimes[b.Target] = nil
+                print("🚨 [SNIPER] " .. b.Target .. " APARECEU NO CHAT! Interceptando...")
+            elseif text:find("defeated") then
+                self.BossStateCache[b.Target] = "Dead"
+                self.DeadTimes[b.Target] = tick()
+                print("💀 [SNIPER] " .. b.Target .. " foi derrotado.")
+            end
+        end
+    end
+end
+
+function Module:StartChatSniper()
+    pcall(function()
+        if TextChatService then
+            table.insert(self.ChatConnections, TextChatService.MessageReceived:Connect(function(msg)
+                if msg and msg.Text then self:MonitorChat(msg.Text) end
+            end))
+        end
+    end)
+    pcall(function()
+        local defaultChat = ReplicatedStorage:FindFirstChild("DefaultChatSystemChatEvents")
+        if defaultChat and defaultChat:FindFirstChild("OnMessageDoneFiltering") then
+            table.insert(self.ChatConnections, defaultChat.OnMessageDoneFiltering.OnClientEvent:Connect(function(msgData)
+                if msgData and msgData.Message then self:MonitorChat(msgData.Message) end
+            end))
+        end
+    end)
+end
+
+function Module:StopChatSniper()
+    for _, conn in ipairs(self.ChatConnections) do conn:Disconnect() end
+    table.clear(self.ChatConnections)
+end
+
+-- ========================================================================
+-- 🖥️ UI (Mantido igual ao que você já tinha gerado antes)
 -- ========================================================================
 local function CreateDynamicDropdown(container, defaultText, options, callback)
+    -- (O código do Dropdown da UI continua 100% o mesmo da mensagem anterior)
     local dropdownFrame = Instance.new("Frame")
     dropdownFrame.Size = UDim2.new(1, -10, 0, 35)
     dropdownFrame.BackgroundTransparency = 1
@@ -168,7 +218,6 @@ function Module:Start()
     UI:CreateSection(tabName, "Filtro e Seleção")
     local container = UI.Tabs[tabName].Container
 
-    -- Variáveis de controle da UI
     local filterOptions = { "Todas as Ilhas" }
     for _, island in ipairs(GameData.IslandsInOrder) do table.insert(filterOptions, island) end
 
@@ -202,7 +251,6 @@ function Module:Start()
         if queueDropdown then queueDropdown.Refresh(queueDisplay, "🗑️ Remover: " .. queueDisplay[1].Target) end
     end
 
-    -- 1. Filtro de Ilhas
     CreateDynamicDropdown(container, "🌍 Filtro: Todas as Ilhas", filterOptions, function(island)
         currentFilter = island
         UpdateFilteredBosses()
@@ -211,12 +259,10 @@ function Module:Start()
         end
     end)
 
-    -- 2. Lista de Bosses Disponíveis (Limpa)
     bossDropdown = CreateDynamicDropdown(container, "💀 Boss: " .. (selectedToAdd and selectedToAdd.Target or "Nenhum"), filteredBosses, function(boss)
         selectedToAdd = boss
     end)
 
-    -- 3. Adicionar à Lista
     UI:CreateButton(tabName, "➕ Adicionar Boss à Fila", function()
         if selectedToAdd then
             table.insert(self.BossQueue, selectedToAdd)
@@ -227,12 +273,10 @@ function Module:Start()
 
     UI:CreateSection(tabName, "Gerenciar Fila")
 
-    -- 4. Lista da Fila Atual
     queueDropdown = CreateDynamicDropdown(container, "🗑️ Selecione para Remover", {{Target="Fila Vazia", Index=0}}, function(qItem)
         selectedToRemoveIndex = qItem.Index
     end)
 
-    -- 5. Remover da Lista
     UI:CreateButton(tabName, "➖ Remover da Fila", function()
         if selectedToRemoveIndex and selectedToRemoveIndex > 0 then
             table.remove(self.BossQueue, selectedToRemoveIndex)
@@ -240,8 +284,7 @@ function Module:Start()
         end
     end)
 
-    -- 6. Controle de Execução
-    UI:CreateToggle(tabName, "Ligar Auto Boss (Fila)", function(state) self:Toggle(state) end)
+    UI:CreateToggle(tabName, "Ligar Auto Boss (Fila Inteligente)", function(state) self:Toggle(state) end)
     RefreshQueueUI()
 end
 
@@ -250,31 +293,63 @@ end
 -- ========================================================================
 function Module:StartFarm()
     self.IsRunning = true
+    self:StartChatSniper()
     CombatService:Start()
     PriorityService:Request("AutoBoss")
+    
+    -- Reseta os status quando liga
+    self.BossStateCache = {}
+    self.DeadTimes = {}
 
     self.BrainLoop = task.spawn(function()
-        local queueIndex = 1
-
         while self.IsRunning and task.wait() do
-            -- Pausa se outro módulo (como AutoQuest) tiver prioridade maior
             if PriorityService:GetPermittedTask() ~= "AutoBoss" then
                 CombatService:SetTarget(nil, false)
                 task.wait(1)
                 continue
             end
             
-            -- Se a fila estiver vazia, aguarda
             if #self.BossQueue == 0 then
                 CombatService:SetTarget(nil, false)
                 task.wait(1)
                 continue
             end
 
-            -- Reinicia o ciclo se chegar ao fim da fila
-            if queueIndex > #self.BossQueue then queueIndex = 1 end
-            
-            local currentBoss = self.BossQueue[queueIndex]
+            -- 🔥 1. ACORDA OS CHEFES SILENCIOSOS
+            for _, b in ipairs(self.BossQueue) do
+                local tName = b.Target
+                if self.BossStateCache[tName] == "Dead" and self.DeadTimes[tName] then
+                    local respawnTime = GameData.SilentBosses and GameData.SilentBosses[tName]
+                    if respawnTime then
+                        -- Se o tempo de respawn de 8s acabou, marca pra checar de novo
+                        if tick() - self.DeadTimes[tName] > respawnTime then
+                            self.BossStateCache[tName] = "PendingCheck"
+                            self.DeadTimes[tName] = nil
+                        end
+                    end
+                end
+            end
+
+            -- 🔥 2. DECIDE QUEM CAÇAR NA FILA
+            local currentBoss = nil
+            for _, b in ipairs(self.BossQueue) do
+                local state = self.BossStateCache[b.Target]
+                if state == nil then state = "PendingCheck" end -- A primeira vez que liga, tem que checar todos!
+                
+                -- Prioridade: Se o Sniper de Chat disse que tá vivo, ou se precisa ser checado
+                if state == "Alive" or state == "PendingCheck" then
+                    currentBoss = b
+                    break
+                end
+            end
+
+            -- Se todos os bosses da fila estiverem "Dead" esperando o chat ou os 8s
+            if not currentBoss then
+                CombatService:SetTarget(nil, false)
+                task.wait(0.5)
+                continue
+            end
+
             local char = LP.Character
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
             if not hrp then continue end
@@ -284,21 +359,22 @@ function Module:StartFarm()
             if currentIsland ~= currentBoss.Island then
                 CombatService:SetTarget(nil, false)
                 TeleportService:TeleportToIsland(currentBoss.Island)
-                task.wait(1.5) -- Tempo para renderizar a ilha
+                task.wait(4)
                 continue
             end
             
-            -- 🎯 CAÇA AO BOSS
+            -- 🎯 ATAQUE / VALIDAÇÃO
             local bossModel = self:GetBossModel(currentBoss.Target)
             
             if bossModel then
-                -- O Boss está vivo! Atacar!
+                self.BossStateCache[currentBoss.Target] = "Alive"
                 CombatService:SetTarget(bossModel, true)
             else
-                -- ⚡ O Boss está morto ou não spawnou! Pula para o próximo da fila
+                -- O Bot chegou lá e o bicho não tá?
                 CombatService:SetTarget(nil, false)
-                queueIndex = queueIndex + 1
-                task.wait(0.5) -- Pequeno delay antes de checar o próximo da fila
+                self.BossStateCache[currentBoss.Target] = "Dead"
+                self.DeadTimes[currentBoss.Target] = tick()
+                task.wait(0.5)
             end
         end
     end)
@@ -306,6 +382,7 @@ end
 
 function Module:StopFarm()
     self.IsRunning = false
+    self:StopChatSniper()
     if self.BrainLoop then task.cancel(self.BrainLoop); self.BrainLoop = nil end
     CombatService:Stop()
     PriorityService:Release("AutoBoss")
