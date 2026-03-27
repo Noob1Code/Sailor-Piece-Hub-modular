@@ -252,4 +252,17 @@ GameData.SilentBosses = {
     ["PandaMiniBoss"] = 8
 }
 
+-- ========================================================================
+-- 🗣️ TRADUTOR DO SNIPER DE CHAT (Target -> Nome no Chat)
+-- ========================================================================
+GameData.BossChatNames = {
+    ["JinwooBoss"] = "Solo Hunter",
+    ["AlucardBoss"] = "",
+    ["YujiBoss"] = "Cursed Vessel",
+    ["SukunaBoss"] = "Cursed King",
+    ["GojoBoss"] = "Limitless Sorcerer",
+    ["AizenBoss"] = "Manipulator",
+    ["YamatoBoss"] = "Yamato"
+}
+
 return GameData
