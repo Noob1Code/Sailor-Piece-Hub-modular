@@ -15,15 +15,27 @@ local Module = { NoToggle = true }
 
 function Module:Init()
     self.IsRunning = false
-    self.BossQueue = {} -- A nossa Fila Ordenada de Execução
+    self.BossQueue = {}
     self.AllBosses = {}
     
-    -- 1. Extrai APENAS Bosses do GameData
+    -- 1. Extrai os Bosses Padrões (Que têm Missão)
     for island, quests in pairs(GameData.QuestDataMap) do
         for _, q in ipairs(quests) do
             if q.Type == "Boss" then
                 table.insert(self.AllBosses, {
                     Target = q.Target,
+                    Island = island
+                })
+            end
+        end
+    end
+
+    -- 2. Extrai os Bosses Ocultos e de Eventos (Que NÃO têm Missão)
+    if GameData.HiddenBosses then
+        for island, bosses in pairs(GameData.HiddenBosses) do
+            for _, bossName in ipairs(bosses) do
+                table.insert(self.AllBosses, {
+                    Target = bossName,
                     Island = island
                 })
             end
