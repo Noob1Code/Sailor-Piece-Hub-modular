@@ -284,7 +284,7 @@ function Module:StartFarm()
             if currentIsland ~= currentBoss.Island then
                 CombatService:SetTarget(nil, false)
                 TeleportService:TeleportToIsland(currentBoss.Island)
-                task.wait(4) -- Tempo para renderizar a ilha
+                task.wait(1.5) -- Tempo para renderizar a ilha
                 continue
             end
             
