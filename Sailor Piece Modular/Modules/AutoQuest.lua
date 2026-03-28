@@ -246,41 +246,34 @@ function Module:StartFarm()
                     
                 if npc and npc:FindFirstChild("HumanoidRootPart") then
                     TeleportService:FlyToNPC(qNPC)
-                    task.wait(0.2)
+                    task.wait(1)
+                    
                     local prompt = npc:FindFirstChildWhichIsA("ProximityPrompt", true)
                     if prompt and fireproximityprompt then
-                        local oldStyle = prompt.Style
-                        prompt.Style = Enum.ProximityPromptStyle.Custom
-                        task.wait(0.5)
                         pcall(function() fireproximityprompt(prompt) end)
-                        task.delay(1.5, function() if prompt then prompt.Style = oldStyle end end)
-                        
-                        task.wait(2.5) 
+                        task.wait(2) 
                     end
                 end
 
             elseif not QuestService:IsTracking(qTracker) then
                 CombatService:SetTarget(nil, false)
                 self.FarmTarget = nil
+                
                 if npc and npc:FindFirstChild("HumanoidRootPart") then
                     TeleportService:FlyToNPC(qNPC)
-                    task.wait(0.2)
+                    task.wait(1)
+                    
                     local prompt = npc:FindFirstChildWhichIsA("ProximityPrompt", true)
                     if prompt and fireproximityprompt then
-                        local oldStyle = prompt.Style
-                        prompt.Style = Enum.ProximityPromptStyle.Custom
-                        task.wait(0.5)
                         pcall(function() fireproximityprompt(prompt) end)
-                        task.delay(1.5, function() if prompt then prompt.Style = oldStyle end end)
-                        
-                        task.wait(2.5)
+                        task.wait(2)
                     end
                 end
 
             else
                 if QuestService:IsQuestCompleted() then
                     CombatService:SetTarget(nil, false)
-                    task.wait(1)
+                    task.wait(1.5)
                 else
                     if not self.FarmTarget or not self.FarmTarget:FindFirstChild("Humanoid") or self.FarmTarget.Humanoid.Health <= 0 then
                         self.FarmTarget = self:GetClosestMob(qTarget, qType)
