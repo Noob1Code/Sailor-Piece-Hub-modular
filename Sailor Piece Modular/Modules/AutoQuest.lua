@@ -248,8 +248,12 @@ function Module:StartFarm()
                     TeleportService:FlyToNPC(qNPC)
                     task.wait(0.2)
                     local prompt = npc:FindFirstChildWhichIsA("ProximityPrompt", true)
-                    if prompt and fireproximityprompt then 
-                        fireproximityprompt(prompt) 
+                    if prompt and fireproximityprompt then
+                        local oldStyle = prompt.Style
+                        prompt.Style = Enum.ProximityPromptStyle.Custom
+                        pcall(function() fireproximityprompt(prompt) end)
+                        task.delay(0.1, function() prompt.Style = oldStyle end)
+                        
                         task.wait(2.5) 
                     end
                 end
@@ -261,8 +265,12 @@ function Module:StartFarm()
                     TeleportService:FlyToNPC(qNPC)
                     task.wait(0.2)
                     local prompt = npc:FindFirstChildWhichIsA("ProximityPrompt", true)
-                    if prompt and fireproximityprompt then 
-                        fireproximityprompt(prompt) 
+                    if prompt and fireproximityprompt then
+                        local oldStyle = prompt.Style
+                        prompt.Style = Enum.ProximityPromptStyle.Custom
+                        pcall(function() fireproximityprompt(prompt) end)
+                        task.delay(0.1, function() prompt.Style = oldStyle end)
+                        
                         task.wait(2.5)
                     end
                 end
