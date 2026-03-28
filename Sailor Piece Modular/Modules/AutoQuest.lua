@@ -182,9 +182,13 @@ function Module:Start()
 end
 
 function Module:StartFarm()
+    if self.IsRunning then return end
+    
     self.IsRunning = true
     CombatService:Start()
     PriorityService:Request("AutoQuest")
+
+    if self.BrainLoop then task.cancel(self.BrainLoop); self.BrainLoop = nil end
 
     task.spawn(function()
         pcall(function()
@@ -197,9 +201,8 @@ function Module:StartFarm()
     end)
 
     self.BrainLoop = task.spawn(function()
-        while self.IsRunning and task.wait() do
+        while self.IsRunning and task.wait(1) do
             if PriorityService:GetPermittedTask() ~= "AutoQuest" then
-                task.wait(1)
                 continue
             end
             CombatService:Start()
