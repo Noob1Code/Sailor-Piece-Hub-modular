@@ -45,12 +45,19 @@ end
 
 local AutoQuestModule = Import("Modules/AutoQuest")
 Core:RegisterModule("Auto Quest (Unitária)", "Missões", AutoQuestModule)
+task.wait(0.3) -- Respiro de rede
+
 local TeleportModule = Import("Services/Teleport")
 Core:RegisterModule("Mundo & Teleporte", "Mundo & Teleporte", TeleportModule)
+task.wait(0.5) -- Respiro de rede
+
 local AutoFarmModule = Import("Modules/AutoFarm")
 Core:RegisterModule("Auto Farm (Qualquer Mob)", "Farm & Nível", AutoFarmModule)
+task.wait(0.7) -- Respiro de rede
+
 local AutoBossModule = Import("Modules/AutoBoss")
 Core:RegisterModule("Auto Boss", "Chefes (Boss)", AutoBossModule)
+task.wait(0.9) -- Respiro de rede
 
 function Core:Init()
     self.UI:Init(Config)
