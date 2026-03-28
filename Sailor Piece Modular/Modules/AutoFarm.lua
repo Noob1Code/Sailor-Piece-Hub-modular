@@ -23,15 +23,10 @@ function Module:Init()
     self.IslandsInOrder = GameData.IslandsInOrder
     self.SelectedIsland = self.IslandsInOrder[1]
     
-    -- Extrai a lista inicial de mobs da primeira ilha
     self.CurrentMobList = self:GetMobsFromIsland(self.SelectedIsland)
     self.SelectedMob = self.CurrentMobList[1]
 end
 
--- ========================================================================
--- 🔍 FUNÇÕES DE FILTRO E BUSCA
--- ========================================================================
--- Extrai apenas os nomes dos Mobs (Targets) do nosso Banco de Dados
 function Module:GetMobsFromIsland(islandName)
     local mobs = {}
     local quests = GameData.QuestDataMap[islandName]
@@ -61,7 +56,6 @@ function Module:GetEnemy(targetName)
         local hum = npc:FindFirstChild("Humanoid")
         local npcBase = npc:FindFirstChild("HumanoidRootPart")
         if hum and hum.Health > 0 and npcBase and not npc:GetAttribute("IsTrainingDummy") then
-            -- Match Exato do nome
             local cleanNpcName = npc.Name:gsub("%d+", ""):lower():gsub("%s+", "")
             local cleanTarget = targetName:lower():gsub("%s+", "")
 
@@ -77,9 +71,6 @@ function Module:GetEnemy(targetName)
     return closest
 end
 
--- ========================================================================
--- 📍 SISTEMA DE GPS (Para teleportar se estiver na ilha errada)
--- ========================================================================
 function Module:GetCurrentIsland(hrp)
     local closestIsland = nil
     local minDist = math.huge
@@ -105,9 +96,6 @@ function Module:NeedsTeleport(hrp, targetIsland)
     return currentIsland ~= targetIsland
 end
 
--- ========================================================================
--- 🖥️ UI COM DROPDOWNS DINÂMICOS
--- ========================================================================
 local function CreateDynamicDropdown(container, defaultText, options, callback)
     local dropdownFrame = Instance.new("Frame")
     dropdownFrame.Size = UDim2.new(1, -10, 0, 35)
@@ -191,17 +179,13 @@ function Module:Start()
     local container = UI.Tabs[tabName].Container
     local mobDropdown
 
-    -- Dropdown 1: Selecionar a Ilha
     CreateDynamicDropdown(container, "🌍 Ilha: " .. self.SelectedIsland, self.IslandsInOrder, function(island)
         self.SelectedIsland = island
         self.CurrentMobList = self:GetMobsFromIsland(island)
         self.SelectedMob = self.CurrentMobList[1]
-        
-        -- Atualiza as opções do Dropdown de Mobs!
         mobDropdown.Refresh(self.CurrentMobList, "🎯 Mob: " .. self.SelectedMob)
     end)
 
-    -- Dropdown 2: Selecionar o Mob
     mobDropdown = CreateDynamicDropdown(container, "🎯 Mob: " .. self.SelectedMob, self.CurrentMobList, function(mob)
         self.SelectedMob = mob
     end)
@@ -214,9 +198,6 @@ function Module:Start()
     WeaponService:BuildUI(tabName)
 end
 
--- ========================================================================
--- 🧠 O CÉREBRO: LÓGICA DE FARM
--- ========================================================================
 function Module:StartFarm()
     self.IsRunning = true
     CombatService:Start()
@@ -237,10 +218,8 @@ function Module:StartFarm()
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
             if not hrp or self.SelectedMob == "Nenhum Mob" then continue end
 
-            -- GPS de Ilha: Garante que estamos na ilha correta do mob selecionado
             if self:NeedsTeleport(hrp, self.SelectedIsland) then
                 CombatService:SetTarget(nil, false) 
-                print("🗺️ Localização divergente! Teleportando para: " .. self.SelectedIsland)
                 TeleportService:TeleportToIsland(self.SelectedIsland)
                 task.wait(4)
                 continue
@@ -253,7 +232,6 @@ function Module:StartFarm()
                 continue
             end
 
-            -- Busca o alvo
             if not self.Target or not self.Target:FindFirstChild("Humanoid") or self.Target.Humanoid.Health <= 0 then
                 self.Target = self:GetEnemy(self.SelectedMob)
             end
