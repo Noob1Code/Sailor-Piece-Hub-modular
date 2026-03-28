@@ -78,11 +78,7 @@ function Module:GetClosestMob(mobName, mobType)
     return closest
 end
 
--- ========================================================================
--- 🖥️ UI (Mantida idêntica à versão anterior)
--- ========================================================================
 local function CreateDynamicDropdown(container, defaultText, options, callback)
-    -- (O código do Dropdown da UI continua o mesmo. Pode manter o seu!)
     local dropdownFrame = Instance.new("Frame")
     dropdownFrame.Size = UDim2.new(1, -10, 0, 35)
     dropdownFrame.BackgroundTransparency = 1
@@ -188,23 +184,17 @@ function Module:Start()
     WeaponService:BuildUI(tabName)
 end
 
--- ========================================================================
--- 🔄 LÓGICA DO CÉREBRO (O SEU FLUXOGRAMA APLICADO)
--- ========================================================================
 function Module:StartFarm()
     self.IsRunning = true
     CombatService:Start()
     PriorityService:Request("AutoQuest")
 
-    -- 🔥 HACK: ATIVA O AUTO-REPEAT NATIVO DO JOGO SILENCIOSAMENTE 🔥
     task.spawn(function()
         pcall(function()
             local remotes = ReplicatedStorage:WaitForChild("RemoteEvents", 3)
             if remotes and remotes:FindFirstChild("SettingsToggle") then
-                -- Dispara os exatos remotes que você capturou no Spy!
                 remotes.SettingsToggle:FireServer("EnableQuestRepeat", true)
                 remotes.SettingsToggle:FireServer("AutoQuestRepeat", true)
-                print("⚙️ Auto-Repeat Nativo do Jogo Ativado com Sucesso!")
             end
         end)
     end)
@@ -227,7 +217,6 @@ function Module:StartFarm()
             local qIsland = self.SelectedQuest.Island
             local qType = self.SelectedQuest.Type
 
-            -- 1. VERIFICAR LOCALIZAÇÃO
             if self:NeedsTeleport(hrp, qIsland) then
                 CombatService:SetTarget(nil, false)
                 TeleportService:TeleportToIsland(qIsland)
@@ -235,7 +224,6 @@ function Module:StartFarm()
                 continue
             end
 
-            -- 2. SETAR SPAWN
             if not SpawnService.SpawnSetado then
                 CombatService:SetTarget(nil, false)
                 SpawnService:SetSpawn()
@@ -246,14 +234,12 @@ function Module:StartFarm()
             local serviceFolder = Workspace:FindFirstChild("ServiceNPCs")
             local npc = serviceFolder and serviceFolder:FindFirstChild(qNPC)
 
-            -- Âncoras (Não tem combate)
             if qTarget == "Nenhum" then
                 CombatService:SetTarget(nil, false)
                 if npc and npc:FindFirstChild("HumanoidRootPart") then TeleportService:FlyToNPC(qNPC) end
                 continue
             end
 
-            -- 3. FLUXOGRAMA DE DECISÃO DA MISSÃO
             if not QuestService:HasAnyQuest() then
                 CombatService:SetTarget(nil, false)
                 self.FarmTarget = nil
@@ -282,9 +268,7 @@ function Module:StartFarm()
                 end
 
             else
-                -- A MISSÃO ESTÁ ATIVA E É A CORRETA -> HORA DE LUTAR!
                 if QuestService:IsQuestCompleted() then
-                    -- Se completou, espera 1 segundinho pro jogo devolver a quest nativamente!
                     CombatService:SetTarget(nil, false)
                     task.wait(1)
                 else
