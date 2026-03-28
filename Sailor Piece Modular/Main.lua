@@ -10,12 +10,10 @@ pcall(function()
         VirtualUser:ClickButton2(Vector2.new())
     end)
 end)
-print("🛡️ Sistema Anti-AFK Ativado!")
 
 getgenv().Import = function(modulePath)
     if moduleCache[modulePath] then return moduleCache[modulePath] end
     local url = REPO_URL .. modulePath .. ".lua?t=" .. tostring(math.random(1000, 9999))
-    print("⏳ Importando: " .. modulePath)
 
     local result
     local success, err = pcall(function() result = game:HttpGet(url) end)
@@ -31,17 +29,13 @@ getgenv().Import = function(modulePath)
     return moduleData
 end
 
-print("🛠️ Inicializando Sailor Piece Hub Pro...")
-
 local Config = { HubName = "Sailor Piece Hub Pro", Version = "1.0.1" }
 local Core = { Modules = {} }
 
--- 1. Injeta a UI
 Core.UI = Import("Ui/UI")
 local CombatService = Import("Services/CombatService")
 CombatService:Init()
 
--- 2. Sistema de Registro
 function Core:RegisterModule(name, category, moduleTable)
     assert(type(moduleTable.Init) == "function", "Erro no módulo " .. name)
     moduleTable.Name = name
@@ -58,13 +52,10 @@ Core:RegisterModule("Auto Farm (Qualquer Mob)", "Farm & Nível", AutoFarmModule)
 local AutoBossModule = Import("Modules/AutoBoss")
 Core:RegisterModule("Auto Boss", "Chefes (Boss)", AutoBossModule)
 
--- 4. Iniciar e Conectar o Botão de Fechar
 function Core:Init()
     self.UI:Init(Config)
     
-    -- 🛑 A MÁGICA DE DESLIGAR TUDO NO BOTÃO X 🛑
     self.UI.OnClose = function()
-        print("🛑 Desligando todos os módulos ativos...")
         for _, module in pairs(self.Modules) do
             if module.Stop then
                 pcall(function() module:Stop() end)
@@ -89,7 +80,6 @@ function Core:Start()
             end
         end
     end
-    print("🚀 Hub Online e Operante!")
 end
 
 Core:Init()
