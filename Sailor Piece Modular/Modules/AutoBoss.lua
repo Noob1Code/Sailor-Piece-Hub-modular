@@ -284,6 +284,8 @@ function Module:Start()
 end
 
 function Module:StartFarm()
+    if self.IsRunning then return end
+    
     self.IsRunning = true
     self:StopChatSniper()
     self:StartChatSniper()
@@ -293,13 +295,14 @@ function Module:StartFarm()
     self.DeadTimes = {}
     self.TargetBossModel = nil
 
+    if self.BrainLoop then task.cancel(self.BrainLoop); self.BrainLoop = nil end
+
     self.BrainLoop = task.spawn(function()
-        while self.IsRunning and task.wait() do
+        while self.IsRunning and task.wait(1) do
             
             if #self.BossQueue == 0 then
                 if self.TargetBossModel then CombatService:SetTarget(nil, false); self.TargetBossModel = nil end
                 PriorityService:Release("AutoBoss")
-                task.wait(1)
                 continue
             end
 
