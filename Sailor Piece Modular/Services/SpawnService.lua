@@ -65,7 +65,7 @@ function SpawnService:SetSpawn()
         if prompt and fireproximityprompt then
             local oldStyle = prompt.Style
             prompt.Style = Enum.ProximityPromptStyle.Custom
-            task.wait(0.1) 
+            task.wait(0.5) 
             
             pcall(function() fireproximityprompt(prompt) end)
             
