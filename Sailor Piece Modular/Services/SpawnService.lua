@@ -51,28 +51,17 @@ function SpawnService:SetSpawn()
     if self.SpawnSetado then return true end
 
     local spawnObj = self:GetClosestSpawn()
-    if not spawnObj then
-        return false 
-    end
+    if not spawnObj then return false end
 
     local targetPart = spawnObj:IsA("BasePart") and spawnObj or spawnObj:FindFirstChildWhichIsA("BasePart", true)
 
     if targetPart then
         TeleportService:FlyTo(targetPart.Position + Vector3.new(0, 3, 0))
-        task.wait(0.5)
+        task.wait(1)
 
         local prompt = spawnObj:FindFirstChildWhichIsA("ProximityPrompt", true)
         if prompt and fireproximityprompt then
-            local oldStyle = prompt.Style
-            prompt.Style = Enum.ProximityPromptStyle.Custom
-            task.wait(0.5) 
-            
             pcall(function() fireproximityprompt(prompt) end)
-            
-            task.delay(1.5, function() 
-                if prompt then prompt.Style = oldStyle end 
-            end)
-            
             task.wait(1) 
             self.SpawnSetado = true
             return true
