@@ -1,5 +1,5 @@
 -- ========================================================================
--- ⚔️ SERVIÇO: COMBAT SERVICE (O MÚSCULO DO HUB) - DINÂMICO E CORRIGIDO
+-- ⚔️ SERVIÇO: COMBAT SERVICE (O MÚSCULO DO HUB) - COM FILTRO DE SKILLS
 -- ========================================================================
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -14,11 +14,21 @@ local CombatService = {
     OrbitAngle = 0,
     MoveLoop = nil,
     AttackLoop = nil,
+    
     AttackPosition = "Atrás",
     AttackDistance = 6,
+    
+    EnabledSkills = {
+        Z = true,
+        X = true,
+        C = true,
+        V = true,
+        F = true
+    },
+    
     SkillQueue = {},
     LastSkillTime = 0,
-    ThrottleDelay = 0.2,
+    ThrottleDelay = 0.8,
     CurrentTween = nil
 }
 
@@ -112,7 +122,14 @@ function CombatService:Start()
     end)
 
     self.AttackLoop = task.spawn(function()
-        local skillPairs = {{Fruit = Enum.KeyCode.Z, Melee = 1},{Fruit = Enum.KeyCode.X, Melee = 2},{Fruit = Enum.KeyCode.C, Melee = 3},{Fruit = Enum.KeyCode.V, Melee = 4}}
+        local skillPairs = {
+            {Key = "Z", Fruit = Enum.KeyCode.Z, Melee = 1},
+            {Key = "X", Fruit = Enum.KeyCode.X, Melee = 2},
+            {Key = "C", Fruit = Enum.KeyCode.C, Melee = 3},
+            {Key = "V", Fruit = Enum.KeyCode.V, Melee = 4},
+            {Key = "F", Fruit = Enum.KeyCode.F, Melee = 5}
+        }
+
         while self.IsActive and task.wait(0.1) do
             if self.Target and self.Target:FindFirstChild("Humanoid") and self.Target.Humanoid.Health > 0 then
                 
@@ -133,7 +150,11 @@ function CombatService:Start()
                         end
                         self.LastSkillTime = tick()
                     else
-                        for i = 1, 4 do table.insert(self.SkillQueue, skillPairs[i]) end
+                        for _, pair in ipairs(skillPairs) do
+                            if self.EnabledSkills[pair.Key] then
+                                table.insert(self.SkillQueue, pair)
+                            end
+                        end
                     end
                 end
             end
