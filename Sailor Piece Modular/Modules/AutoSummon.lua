@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🔮 MÓDULO: AUTO SUMMON BOSS (INVOCAÇÃO NA BOSS ISLAND)
+-- 🔮 MÓDULO: AUTO SUMMON BOSS (INVOCAÇÃO NA BOSS ISLAND) - COM PAUSA DINÂMICA
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -20,6 +20,7 @@ function Module:Init()
     self.IsRunning = false
     self.TargetBossModel = nil
     self.Patience = 0
+    
     self.SummonBossList = GameData.SummonBosses or {"Nenhum Boss Encontrado"}
     self.SelectedSummonBoss = self.SummonBossList[1]
     
@@ -97,19 +98,27 @@ function Module:StartFarm()
     CombatService:Start()
     PriorityService:Request("AutoSummon")
 
-    if self.AutoSpawnRemote and not self.LastSummonState then
-        pcall(function() self.AutoSpawnRemote:FireServer(self.SelectedSummonBoss) end)
-        self.LastSummonState = true
-    end
-
     if self.BrainLoop then task.cancel(self.BrainLoop); self.BrainLoop = nil end
 
     self.BrainLoop = task.spawn(function()
         while self.IsRunning and task.wait(1) do
             
+            -- ==========================================
+            -- 🚦 LÓGICA DE PAUSA DINÂMICA (A MÁGICA AQUI)
+            -- ==========================================
             if PriorityService:GetPermittedTask() ~= "AutoSummon" then
+                if self.LastSummonState and self.AutoSpawnRemote then
+                    pcall(function() self.AutoSpawnRemote:FireServer(self.SelectedSummonBoss) end)
+                    self.LastSummonState = false
+                end
                 task.wait(1)
                 continue
+            end
+
+            if not self.LastSummonState and self.AutoSpawnRemote then
+                pcall(function() self.AutoSpawnRemote:FireServer(self.SelectedSummonBoss) end)
+                self.LastSummonState = true
+                RandomService:Wait(1.0, 2.0)
             end
 
             local char = LP.Character
