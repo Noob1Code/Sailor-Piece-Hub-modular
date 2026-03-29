@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🗡️ SERVIÇO: GERENCIADOR DE ARMAS E SKILLS
+-- 🗡️ SERVIÇO: GERENCIADOR DE ARMAS, SKILLS E POSICIONAMENTO
 -- ========================================================================
 local Players = game:GetService("Players")
 local LP = Players.LocalPlayer
@@ -40,6 +40,7 @@ function WeaponService:UpdateLabel()
         self.ActiveLabel.Text = "Armas Ativas: " .. table.concat(self.SelectedWeapons, ", ")
     end
 end
+
 function WeaponService:EquipWeapon(weaponName)
     local char = LP.Character
     if not char then return false end
@@ -56,12 +57,34 @@ function WeaponService:EquipWeapon(weaponName)
 end
 
 -- ========================================================================
--- 🖥️ CONSTRUTOR DE INTERFACE (Injeta a UI em qualquer aba)
+-- 🖥️ CONSTRUTOR DE INTERFACE (Injeta a UI na aba Misc & Config)
 -- ========================================================================
 function WeaponService:BuildUI(tabName)
     local container = UI.Tabs[tabName].Container
+    local CombatService = Import("Services/CombatService")
 
-    UI:CreateSection(tabName, "Gerenciador de Armas e Skills")
+    -- ==========================================
+    -- 🛡️ SEÇÃO DE POSICIONAMENTO TÁTICO
+    -- ==========================================
+    UI:CreateSection(tabName, "🛡️ Posicionamento Tático (Combate)")
+
+    UI:CreateDropdown(tabName, "Posição de Ataque", {"Atrás", "Frente", "Acima", "Abaixo", "Orbital", "Diagonal"}, function(val)
+        CombatService.AttackPosition = val
+    end)
+
+    UI:CreateTextBox(tabName, "Distância do Alvo (Studs)", function(val)
+        local num = tonumber(val)
+        if num then 
+            CombatService.AttackDistance = num 
+        end
+    end)
+
+
+    -- ==========================================
+    -- 🗡️ SEÇÃO DE ARMAS
+    -- ==========================================
+    UI:CreateSection(tabName, "🗡️ Gerenciador de Armas")
+    
     self.ActiveLabel = Instance.new("TextLabel")
     self.ActiveLabel.Size = UDim2.new(1, -10, 0, 30)
     self.ActiveLabel.BackgroundTransparency = 1
