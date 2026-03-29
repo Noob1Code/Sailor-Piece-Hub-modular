@@ -64,6 +64,27 @@ function WeaponService:BuildUI(tabName)
     local CombatService = Import("Services/CombatService")
 
     -- ==========================================
+    -- 🪄 SEÇÃO DE SELEÇÃO DE SKILLS (AUTO SKILL)
+    -- ==========================================
+    UI:CreateSection(tabName, "🪄 Uso de Habilidades (Auto Skill)")
+    
+    UI:CreateToggle(tabName, "Usar Skill [Z]", function(state) 
+        CombatService.EnabledSkills.Z = state 
+    end)
+    UI:CreateToggle(tabName, "Usar Skill [X]", function(state) 
+        CombatService.EnabledSkills.X = state 
+    end)
+    UI:CreateToggle(tabName, "Usar Skill [C]", function(state) 
+        CombatService.EnabledSkills.C = state 
+    end)
+    UI:CreateToggle(tabName, "Usar Skill [V]", function(state) 
+        CombatService.EnabledSkills.V = state 
+    end)
+    UI:CreateToggle(tabName, "Usar Skill [F]", function(state) 
+        CombatService.EnabledSkills.F = state 
+    end)
+
+    -- ==========================================
     -- 🛡️ SEÇÃO DE POSICIONAMENTO TÁTICO
     -- ==========================================
     UI:CreateSection(tabName, "🛡️ Posicionamento Tático (Combate)")
