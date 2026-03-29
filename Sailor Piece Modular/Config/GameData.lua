@@ -263,6 +263,8 @@ GameData.SummonBosses = {
         AutoRemote = "RequestAutoSpawn",
         RequiresDifficulty = false,
         Difficulties = {"Padrão"},
+        SummonNPC = "SummonBossNPC",
+        SpawnFolders = {},
         Bosses = {
             "SaberBoss", 
             "QinShiBoss", 
@@ -277,6 +279,11 @@ GameData.SummonBosses = {
         AutoRemote = "RequestAutoSpawnStrongest",
         RequiresDifficulty = true,
         Difficulties = {"Normal", "Medium", "Hard", "Extreme"},
+        SummonNPC = "StrongestBossSummonerNPC",
+        SpawnFolders = {
+            ["StrongestToday"] = "BossSpawn_StrongestToday",
+            ["StrongestHistory"] = "BossSpawn_StrongestHistory"
+        },
         Bosses = {
             "StrongestToday", 
             "StrongestHistory"
