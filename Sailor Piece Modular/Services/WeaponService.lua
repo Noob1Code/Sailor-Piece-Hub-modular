@@ -72,11 +72,41 @@ function WeaponService:BuildUI(tabName)
         CombatService.AttackPosition = val
     end)
 
-    UI:CreateDropdown(tabName, "Distância do Alvo", {"Colado (0)", "Perto (5)", "Média (15)", "Longe (25)"}, function(val)
-        if val == "Colado (0)" then CombatService.AttackDistance = 0
-        elseif val == "Perto (5)" then CombatService.AttackDistance = 5
-        elseif val == "Média (15)" then CombatService.AttackDistance = 15
-        elseif val == "Longe (25)" then CombatService.AttackDistance = 25
+    local distanceFrame = Instance.new("Frame")
+    distanceFrame.Size = UDim2.new(1, -10, 0, 35)
+    distanceFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+    distanceFrame.Parent = container
+    Instance.new("UICorner", distanceFrame).CornerRadius = UDim.new(0, 4)
+
+    local distanceLabel = Instance.new("TextLabel")
+    distanceLabel.Size = UDim2.new(0.6, 0, 1, 0)
+    distanceLabel.Position = UDim2.new(0, 10, 0, 0)
+    distanceLabel.BackgroundTransparency = 1
+    distanceLabel.Text = "📏 Distância (Studs):"
+    distanceLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    distanceLabel.Font = Enum.Font.GothamSemibold
+    distanceLabel.TextSize = 13
+    distanceLabel.TextXAlignment = Enum.TextXAlignment.Left
+    distanceLabel.Parent = distanceFrame
+
+    local distanceInput = Instance.new("TextBox")
+    distanceInput.Size = UDim2.new(0.35, -5, 0.8, 0)
+    distanceInput.Position = UDim2.new(0.65, 0, 0.1, 0)
+    distanceInput.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    distanceInput.TextColor3 = Color3.fromRGB(150, 255, 150)
+    distanceInput.Font = Enum.Font.GothamBold
+    distanceInput.TextSize = 14
+    distanceInput.Text = tostring(CombatService.AttackDistance or 6)
+    distanceInput.PlaceholderText = "Ex: 15"
+    distanceInput.Parent = distanceFrame
+    Instance.new("UICorner", distanceInput).CornerRadius = UDim.new(0, 4)
+    
+    distanceInput.FocusLost:Connect(function()
+        local num = tonumber(distanceInput.Text)
+        if num then
+            CombatService.AttackDistance = num
+        else
+            distanceInput.Text = tostring(CombatService.AttackDistance or 6) 
         end
     end)
 
