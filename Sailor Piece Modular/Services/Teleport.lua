@@ -30,7 +30,7 @@ function Module:FlyTo(targetPos)
 
     if hrp and hum then
         local distance = (hrp.Position - targetPos).Magnitude
-        local tempo = math.max(0.1, distance / 150)
+        local tempo = math.max(0.1, distance / 200)
 
         hum.PlatformStand = true
         hrp.Velocity = Vector3.zero
