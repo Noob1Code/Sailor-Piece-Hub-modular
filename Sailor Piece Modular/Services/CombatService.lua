@@ -1,5 +1,5 @@
 -- ========================================================================
--- ⚔️ SERVIÇO: COMBAT SERVICE (O MÚSCULO DO HUB) - COM FILTRO DE SKILLS
+-- ⚔️ SERVIÇO: COMBAT SERVICE (O MÚSCULO DO HUB) - CORRIGIDO (SINCRONIZADO)
 -- ========================================================================
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -19,11 +19,11 @@ local CombatService = {
     AttackDistance = 6,
     
     EnabledSkills = {
-        Z = true,
-        X = true,
-        C = true,
-        V = true,
-        F = true
+        Z = false,
+        X = false,
+        C = false,
+        V = false,
+        F = false
     },
     
     SkillQueue = {},
