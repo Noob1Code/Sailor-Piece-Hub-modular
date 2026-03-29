@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🔮 MÓDULO: AUTO SUMMON BOSS (INVOCAÇÃO NA BOSS ISLAND) - COM PAUSA DINÂMICA
+-- 🔮 MÓDULO: AUTO SUMMON BOSS (MULT-ILHAS, DIFICULDADES E PAUSA DINÂMICA)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -21,19 +21,17 @@ function Module:Init()
     self.TargetBossModel = nil
     self.Patience = 0
     
-    self.SummonBossList = GameData.SummonBosses or {"Nenhum Boss Encontrado"}
-    self.SelectedSummonBoss = self.SummonBossList[1]
+    self.SummonData = GameData.SummonBosses or {}
+    self.IslandsWithSummon = {}
+    for island, _ in pairs(self.SummonData) do table.insert(self.IslandsWithSummon, island) end
     
-    self.TargetIsland = "Boss Island"
+    self.SelectedIsland = self.IslandsWithSummon[1] or "Boss Island"
+    self.CurrentIslandRules = self.SummonData[self.SelectedIsland] or {Bosses = {"Nenhum"}, Difficulties = {"Padrão"}}
+    self.SelectedSummonBoss = self.CurrentIslandRules.Bosses[1]
+    self.SelectedDifficulty = self.CurrentIslandRules.Difficulties[1]
+    
     self.LastSummonState = false
-    
-    pcall(function()
-        local remotes = ReplicatedStorage:WaitForChild("Remotes", 3)
-        if remotes then
-            self.SummonRemote = remotes:WaitForChild("RequestSummonBoss", 3)
-            self.AutoSpawnRemote = remotes:WaitForChild("RequestAutoSpawn", 3)
-        end
-    end)
+    self.RemotesFolder = ReplicatedStorage:WaitForChild("Remotes", 5)
 end
 
 function Module:GetCurrentIsland(hrp)
@@ -78,17 +76,123 @@ function Module:GetBossModel(targetName)
     return closest
 end
 
+local function CreateDynamicDropdown(container, defaultText, options, callback)
+    local dropdownFrame = Instance.new("Frame")
+    dropdownFrame.Size = UDim2.new(1, -10, 0, 35)
+    dropdownFrame.BackgroundTransparency = 1
+    dropdownFrame.ClipsDescendants = true
+    dropdownFrame.Parent = container
+
+    local mainBtn = Instance.new("TextButton")
+    mainBtn.Size = UDim2.new(1, 0, 0, 35)
+    mainBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+    mainBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    mainBtn.Font = Enum.Font.GothamBold
+    mainBtn.TextSize = 13
+    mainBtn.Text = defaultText .. " ▼"
+    mainBtn.Parent = dropdownFrame
+    Instance.new("UICorner", mainBtn).CornerRadius = UDim.new(0, 4)
+
+    local optionsContainer = Instance.new("ScrollingFrame")
+    optionsContainer.Size = UDim2.new(1, 0, 1, -40)
+    optionsContainer.Position = UDim2.new(0, 0, 0, 40)
+    optionsContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    optionsContainer.ScrollBarThickness = 2
+    optionsContainer.Parent = dropdownFrame
+    Instance.new("UICorner", optionsContainer).CornerRadius = UDim.new(0, 4)
+
+    local listLayout = Instance.new("UIListLayout")
+    listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    listLayout.Padding = UDim.new(0, 2)
+    listLayout.Parent = optionsContainer
+
+    local isOpen = false
+
+    mainBtn.MouseButton1Click:Connect(function()
+        isOpen = not isOpen
+        mainBtn.Text = defaultText .. (isOpen and " ▲" or " ▼")
+        dropdownFrame.Size = isOpen and UDim2.new(1, -10, 0, 130) or UDim2.new(1, -10, 0, 35)
+    end)
+
+    local function populate(newOptions)
+        for _, child in ipairs(optionsContainer:GetChildren()) do
+            if child:IsA("TextButton") then child:Destroy() end
+        end
+        for _, option in ipairs(newOptions) do
+            local optBtn = Instance.new("TextButton")
+            optBtn.Size = UDim2.new(1, -5, 0, 25)
+            optBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+            optBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+            optBtn.Font = Enum.Font.GothamSemibold
+            optBtn.TextSize = 12
+            optBtn.Text = option
+            optBtn.Parent = optionsContainer
+            Instance.new("UICorner", optBtn).CornerRadius = UDim.new(0, 4)
+
+            optBtn.MouseButton1Click:Connect(function()
+                isOpen = false
+                defaultText = "📍 " .. option
+                mainBtn.Text = defaultText .. " ▼"
+                dropdownFrame.Size = UDim2.new(1, -10, 0, 35)
+                if callback then callback(option) end
+            end)
+        end
+        task.wait(0.1)
+        optionsContainer.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y)
+    end
+
+    populate(options)
+    return {
+        Refresh = function(newOptions, resetText)
+            defaultText = resetText
+            mainBtn.Text = defaultText .. " ▼"
+            populate(newOptions)
+        end
+    }
+end
+
 function Module:Start()
     local tabName = "Chefes (Boss)"
-    UI:CreateSection(tabName, "🔮 Invocação Automática (Boss Island)")
+    UI:CreateSection(tabName, "🔮 Invocação Automática")
+    local container = UI.Tabs[tabName].Container
 
-    UI:CreateDropdown(tabName, "📍 Selecionar Boss de Invocação", self.SummonBossList, function(selected)
-        self.SelectedSummonBoss = selected
+    local islandDropdown
+    local bossDropdown
+    local diffDropdown
+
+    islandDropdown = CreateDynamicDropdown(container, "🌍 Ilha: " .. self.SelectedIsland, self.IslandsWithSummon, function(island)
+        self.SelectedIsland = island
+        self.CurrentIslandRules = self.SummonData[island]
+        self.SelectedSummonBoss = self.CurrentIslandRules.Bosses[1]
+        self.SelectedDifficulty = self.CurrentIslandRules.Difficulties[1]
+        
+        if bossDropdown then bossDropdown.Refresh(self.CurrentIslandRules.Bosses, "📍 Boss: " .. self.SelectedSummonBoss) end
+        if diffDropdown then diffDropdown.Refresh(self.CurrentIslandRules.Difficulties, "🔥 Dif: " .. self.SelectedDifficulty) end
+    end)
+
+    bossDropdown = CreateDynamicDropdown(container, "📍 Boss: " .. self.SelectedSummonBoss, self.CurrentIslandRules.Bosses, function(boss)
+        self.SelectedSummonBoss = boss
+    end)
+    
+    diffDropdown = CreateDynamicDropdown(container, "🔥 Dif: " .. self.SelectedDifficulty, self.CurrentIslandRules.Difficulties, function(diff)
+        self.SelectedDifficulty = diff
     end)
 
     UI:CreateToggle(tabName, "Auto Summon & Farm", function(state)
         self:Toggle(state)
     end)
+end
+
+function Module:FireRemote(remoteName)
+    if not self.RemotesFolder then return end
+    local remote = self.RemotesFolder:FindFirstChild(remoteName)
+    if remote then
+        if self.CurrentIslandRules.RequiresDifficulty then
+            pcall(function() remote:FireServer(self.SelectedSummonBoss, self.SelectedDifficulty) end)
+        else
+            pcall(function() remote:FireServer(self.SelectedSummonBoss) end)
+        end
+    end
 end
 
 function Module:StartFarm()
@@ -98,27 +202,29 @@ function Module:StartFarm()
     CombatService:Start()
     PriorityService:Request("AutoSummon")
 
+    if not self.LastSummonState then
+        self:FireRemote(self.CurrentIslandRules.AutoRemote)
+        self.LastSummonState = true
+    end
+
     if self.BrainLoop then task.cancel(self.BrainLoop); self.BrainLoop = nil end
 
     self.BrainLoop = task.spawn(function()
         while self.IsRunning and task.wait(1) do
             
-            -- ==========================================
-            -- 🚦 LÓGICA DE PAUSA DINÂMICA (A MÁGICA AQUI)
-            -- ==========================================
             if PriorityService:GetPermittedTask() ~= "AutoSummon" then
-                if self.LastSummonState and self.AutoSpawnRemote then
-                    pcall(function() self.AutoSpawnRemote:FireServer(self.SelectedSummonBoss) end)
+                if self.LastSummonState then
+                    self:FireRemote(self.CurrentIslandRules.AutoRemote)
                     self.LastSummonState = false
                 end
                 task.wait(1)
                 continue
             end
 
-            if not self.LastSummonState and self.AutoSpawnRemote then
-                pcall(function() self.AutoSpawnRemote:FireServer(self.SelectedSummonBoss) end)
+            if not self.LastSummonState then
+                self:FireRemote(self.CurrentIslandRules.AutoRemote)
                 self.LastSummonState = true
-                RandomService:Wait(1.0, 2.0)
+                RandomService:Wait(1.0, 2.0) 
             end
 
             local char = LP.Character
@@ -126,10 +232,10 @@ function Module:StartFarm()
             if not hrp then continue end
             
             local currentIsland = self:GetCurrentIsland(hrp)
-            if currentIsland ~= self.TargetIsland then
+            if currentIsland ~= self.SelectedIsland then
                 if self.TargetBossModel then CombatService:SetTarget(nil); self.TargetBossModel = nil end
                 self.Patience = 0
-                TeleportService:TeleportToIsland(self.TargetIsland)
+                TeleportService:TeleportToIsland(self.SelectedIsland)
                 SpawnService.SpawnSetado = false
                 RandomService:Wait(1.5, 2.5)
                 continue
@@ -152,13 +258,10 @@ function Module:StartFarm()
             else
                 CombatService:SetTarget(nil, false)
                 self.TargetBossModel = nil
-                
                 self.Patience = self.Patience + 1
                 
                 if self.Patience >= 3 then
-                    if self.SummonRemote then
-                        pcall(function() self.SummonRemote:FireServer(self.SelectedSummonBoss) end)
-                    end
+                    self:FireRemote(self.CurrentIslandRules.SummonRemote)
                     self.Patience = 0
                     RandomService:Wait(1.0, 2.0)
                 end
@@ -173,8 +276,8 @@ function Module:StopFarm()
     CombatService:Stop()
     PriorityService:Release("AutoSummon")
     
-    if self.AutoSpawnRemote and self.LastSummonState then
-        pcall(function() self.AutoSpawnRemote:FireServer(self.SelectedSummonBoss) end)
+    if self.LastSummonState then
+        self:FireRemote(self.CurrentIslandRules.AutoRemote)
         self.LastSummonState = false
     end
 end
