@@ -7,11 +7,10 @@ local LP = Players.LocalPlayer
 local UI = Import("Ui/UI")
 
 local WeaponService = {
-    SelectedWeapons = {}, -- Lista das armas ativas
-    ActiveLabel = nil     -- O texto na UI que mostra as armas atuais
+    SelectedWeapons = {},
+    ActiveLabel = nil
 }
 
--- Pega todas as ferramentas (Tools) do inventário e do personagem
 function WeaponService:GetAvailableWeapons()
     local weapons = {}
     local char = LP.Character
@@ -33,7 +32,6 @@ function WeaponService:GetAvailableWeapons()
     return weapons
 end
 
--- Atualiza o texto visual das armas ativas
 function WeaponService:UpdateLabel()
     if not self.ActiveLabel then return end
     if #self.SelectedWeapons == 0 then
@@ -42,16 +40,10 @@ function WeaponService:UpdateLabel()
         self.ActiveLabel.Text = "Armas Ativas: " .. table.concat(self.SelectedWeapons, ", ")
     end
 end
-
--- Equipa uma arma específica (O CombatService vai usar isso)
 function WeaponService:EquipWeapon(weaponName)
     local char = LP.Character
     if not char then return false end
-    
-    -- Se já está na mão
     if char:FindFirstChild(weaponName) then return true end
-
-    -- Se está na mochila, puxa para a mão
     local backpack = LP:FindFirstChild("Backpack")
     if backpack then
         local tool = backpack:FindFirstChild(weaponName)
@@ -70,8 +62,6 @@ function WeaponService:BuildUI(tabName)
     local container = UI.Tabs[tabName].Container
 
     UI:CreateSection(tabName, "Gerenciador de Armas e Skills")
-
-    -- 1. Texto de Armas Ativas
     self.ActiveLabel = Instance.new("TextLabel")
     self.ActiveLabel.Size = UDim2.new(1, -10, 0, 30)
     self.ActiveLabel.BackgroundTransparency = 1
@@ -82,7 +72,6 @@ function WeaponService:BuildUI(tabName)
     self.ActiveLabel.Parent = container
     self:UpdateLabel()
 
-    -- Dropdown de Armas (Construído manualmente para ter o botão de atualizar)
     local dropdownFrame = Instance.new("Frame")
     dropdownFrame.Size = UDim2.new(1, -10, 0, 35)
     dropdownFrame.BackgroundTransparency = 1
@@ -90,7 +79,7 @@ function WeaponService:BuildUI(tabName)
     dropdownFrame.Parent = container
 
     local mainBtn = Instance.new("TextButton")
-    mainBtn.Size = UDim2.new(1, -35, 0, 35) -- Espaço para o botão de refresh
+    mainBtn.Size = UDim2.new(1, -35, 0, 35)
     mainBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
     mainBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     mainBtn.Font = Enum.Font.GothamBold
@@ -99,7 +88,6 @@ function WeaponService:BuildUI(tabName)
     mainBtn.Parent = dropdownFrame
     Instance.new("UICorner", mainBtn).CornerRadius = UDim.new(0, 4)
 
-    -- Botão de Atualizar Lista (Refresh)
     local refreshBtn = Instance.new("TextButton")
     refreshBtn.Size = UDim2.new(0, 30, 0, 35)
     refreshBtn.Position = UDim2.new(1, -30, 0, 0)
@@ -164,12 +152,10 @@ function WeaponService:BuildUI(tabName)
         mainBtn.Text = "🗡️ Armas Atualizadas! ▼"
     end)
 
-    populate() -- Preenche a primeira vez
+    populate()
 
-    -- Botões de Ação
     UI:CreateButton(tabName, "➕ Adicionar Arma à Lista", function()
         if selectedToolToManage ~= "" and selectedToolToManage ~= "Nenhuma Arma Encontrada" then
-            -- Evita duplicatas
             for _, w in ipairs(self.SelectedWeapons) do if w == selectedToolToManage then return end end
             table.insert(self.SelectedWeapons, selectedToolToManage)
             self:UpdateLabel()
