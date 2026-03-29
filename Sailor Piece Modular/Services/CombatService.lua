@@ -1,5 +1,5 @@
 -- ========================================================================
--- ⚔️ SERVIÇO: COMBAT SERVICE (O MÚSCULO DO HUB) - MODO DINÂMICO
+-- ⚔️ SERVIÇO: COMBAT SERVICE (O MÚSCULO DO HUB) - DINÂMICO E CORRIGIDO
 -- ========================================================================
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -26,6 +26,20 @@ function CombatService:Init()
     self.CombatRemote = pcall(function() return ReplicatedStorage:WaitForChild("CombatSystem"):WaitForChild("Remotes"):WaitForChild("RequestHit") end) and ReplicatedStorage.CombatSystem.Remotes.RequestHit or nil
     self.AbilityRemote = pcall(function() return ReplicatedStorage:WaitForChild("AbilitySystem"):WaitForChild("Remotes"):WaitForChild("RequestAbility") end) and ReplicatedStorage.AbilitySystem.Remotes.RequestAbility or nil
     self.FruitRemote = pcall(function() return ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("FruitPowerRemote") end) and ReplicatedStorage.RemoteEvents.FruitPowerRemote or nil
+end
+
+function CombatService:EquipFirstWeapon()
+    local char = LP.Character
+    if not char then return nil end
+    local tool = char:FindFirstChildOfClass("Tool")
+    if not tool then
+        local backpack = LP:FindFirstChild("Backpack")
+        if backpack then 
+            tool = backpack:FindFirstChildOfClass("Tool")
+            if tool then tool.Parent = char end 
+        end
+    end
+    return tool and tool.Name or nil
 end
 
 function CombatService:CancelTween()
@@ -101,12 +115,16 @@ function CombatService:Start()
         local skillPairs = {{Fruit = Enum.KeyCode.Z, Melee = 1},{Fruit = Enum.KeyCode.X, Melee = 2},{Fruit = Enum.KeyCode.C, Melee = 3},{Fruit = Enum.KeyCode.V, Melee = 4}}
         while self.IsActive and task.wait(0.1) do
             if self.Target and self.Target:FindFirstChild("Humanoid") and self.Target.Humanoid.Health > 0 then
+                
                 if self.CombatRemote then pcall(function() self.CombatRemote:FireServer() end) end
+                
                 if tick() - self.LastSkillTime >= self.ThrottleDelay then
                     if #self.SkillQueue > 0 then
                         local currentPair = table.remove(self.SkillQueue, 1)
                         local weaponsToUse = WeaponService.SelectedWeapons
-                        for _, wName in ipairs(#weaponsToUse > 0 and weaponsToUse or {CombatService:EquipFirstWeapon()}) do
+                        local listToIterate = #weaponsToUse > 0 and weaponsToUse or {self:EquipFirstWeapon()}
+                        
+                        for _, wName in ipairs(listToIterate) do
                             if wName then
                                 WeaponService:EquipWeapon(wName)
                                 if self.FruitRemote then pcall(function() self.FruitRemote:FireServer("UseAbility", {["KeyCode"] = currentPair.Fruit, ["FruitPower"] = wName}) end) end
