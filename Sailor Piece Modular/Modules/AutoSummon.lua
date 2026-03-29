@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🔮 MÓDULO: AUTO SUMMON BOSS (MULT-ILHAS, DIFICULDADES E PAUSA DINÂMICA)
+-- 🔮 MÓDULO: AUTO SUMMON BOSS (RENDERIZAÇÃO FORÇADA)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -53,7 +53,6 @@ function Module:GetBossModel(targetName)
     local closest, minDist = nil, math.huge
     local hrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
     if not hrp then return nil end
-
     local cleanTarget = targetName:lower():gsub("%s+", "")
 
     for _, folder in ipairs(Workspace:GetChildren()) do
@@ -107,7 +106,6 @@ local function CreateDynamicDropdown(container, defaultText, options, callback)
     listLayout.Parent = optionsContainer
 
     local isOpen = false
-
     mainBtn.MouseButton1Click:Connect(function()
         isOpen = not isOpen
         mainBtn.Text = defaultText .. (isOpen and " ▲" or " ▼")
@@ -140,15 +138,8 @@ local function CreateDynamicDropdown(container, defaultText, options, callback)
         task.wait(0.1)
         optionsContainer.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y)
     end
-
     populate(options)
-    return {
-        Refresh = function(newOptions, resetText)
-            defaultText = resetText
-            mainBtn.Text = defaultText .. " ▼"
-            populate(newOptions)
-        end
-    }
+    return { Refresh = function(newOptions, resetText) defaultText = resetText; mainBtn.Text = defaultText .. " ▼"; populate(newOptions) end }
 end
 
 function Module:Start()
@@ -156,9 +147,7 @@ function Module:Start()
     UI:CreateSection(tabName, "🔮 Invocação Automática")
     local container = UI.Tabs[tabName].Container
 
-    local islandDropdown
-    local bossDropdown
-    local diffDropdown
+    local islandDropdown, bossDropdown, diffDropdown
 
     islandDropdown = CreateDynamicDropdown(container, "🌍 Ilha: " .. self.SelectedIsland, self.IslandsWithSummon, function(island)
         self.SelectedIsland = island
@@ -178,9 +167,7 @@ function Module:Start()
         self.SelectedDifficulty = diff
     end)
 
-    UI:CreateToggle(tabName, "Auto Summon & Farm", function(state)
-        self:Toggle(state)
-    end)
+    UI:CreateToggle(tabName, "Auto Summon & Farm", function(state) self:Toggle(state) end)
 end
 
 function Module:FireRemote(remoteName)
@@ -258,9 +245,30 @@ function Module:StartFarm()
             else
                 CombatService:SetTarget(nil, false)
                 self.TargetBossModel = nil
+
+                local spawnFolderName = self.CurrentIslandRules.SpawnFolders and self.CurrentIslandRules.SpawnFolders[self.SelectedSummonBoss]
+                if spawnFolderName then
+                    local spawnZone = Workspace:FindFirstChild(spawnFolderName)
+                    if spawnZone then
+                        local targetPos = spawnZone:IsA("BasePart") and spawnZone.Position or (spawnZone:IsA("Model") and spawnZone.PrimaryPart and spawnZone.PrimaryPart.Position)
+                        if not targetPos then
+                            local p = spawnZone:FindFirstChildWhichIsA("BasePart", true)
+                            if p then targetPos = p.Position end
+                        end
+                        if targetPos and (hrp.Position - targetPos).Magnitude > 50 then
+                            TeleportService:FlyTo(targetPos + Vector3.new(0, 30, 0))
+                        end
+                    end
+                end
+
                 self.Patience = self.Patience + 1
                 
-                if self.Patience >= 3 then
+                if self.Patience >= 5 then
+                    if self.CurrentIslandRules.SummonNPC then
+                        TeleportService:FlyToNPC(self.CurrentIslandRules.SummonNPC)
+                        task.wait(1)
+                    end
+                    
                     self:FireRemote(self.CurrentIslandRules.SummonRemote)
                     self.Patience = 0
                     RandomService:Wait(1.0, 2.0)
