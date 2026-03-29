@@ -55,7 +55,7 @@ local AutoFarmModule = Import("Modules/AutoFarm")
 Core:RegisterModule("Auto Farm (Qualquer Mob)", "Farm & Nível", AutoFarmModule)
 task.wait(0.7) -- Respiro de rede
 
-local AutoBossModule = Import("Modules/AutoBoss")
+local AutoBossModule = Import("Modules/AutoBoss"),Import("Modules/AutoSummon")
 Core:RegisterModule("Auto Boss", "Chefes (Boss)", AutoBossModule)
 task.wait(0.9) -- Respiro de rede
 
