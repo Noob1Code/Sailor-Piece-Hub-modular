@@ -72,10 +72,11 @@ function WeaponService:BuildUI(tabName)
         CombatService.AttackPosition = val
     end)
 
-    UI:CreateTextBox(tabName, "Distância do Alvo (Studs)", function(val)
-        local num = tonumber(val)
-        if num then 
-            CombatService.AttackDistance = num 
+    UI:CreateDropdown(tabName, "Distância do Alvo", {"Colado (0)", "Perto (5)", "Média (15)", "Longe (25)"}, function(val)
+        if val == "Colado (0)" then CombatService.AttackDistance = 0
+        elseif val == "Perto (5)" then CombatService.AttackDistance = 5
+        elseif val == "Média (15)" then CombatService.AttackDistance = 15
+        elseif val == "Longe (25)" then CombatService.AttackDistance = 25
         end
     end)
 
