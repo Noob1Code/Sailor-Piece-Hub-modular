@@ -1,10 +1,11 @@
 -- ========================================================================
--- 🗡️ SERVIÇO: GERENCIADOR DE ARMAS, SKILLS E POSICIONAMENTO
+-- 🗡️ SERVIÇO: GERENCIADOR DE ARMAS E CONFIGURAÇÕES GLOBAIS (UI)
 -- ========================================================================
 local Players = game:GetService("Players")
 local LP = Players.LocalPlayer
 
 local UI = Import("Ui/UI")
+local GameData = Import("Config/GameData") -- 🔥 Importa as configurações globais
 
 local WeaponService = {
     SelectedWeapons = {},
@@ -57,11 +58,63 @@ function WeaponService:EquipWeapon(weaponName)
 end
 
 -- ========================================================================
--- 🖥️ CONSTRUTOR DE INTERFACE (Injeta a UI na aba Misc & Config)
+-- 🖥️ CONSTRUTOR DE INTERFACE (Aba: Misc & Config)
 -- ========================================================================
 function WeaponService:BuildUI(tabName)
     local container = UI.Tabs[tabName].Container
     local CombatService = Import("Services/CombatService")
+
+    -- ==========================================
+    -- 🔧 HELPER: Função fácil para criar TextBoxes
+    -- ==========================================
+    local function CreateInput(labelText, defaultVal, callback)
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(1, -10, 0, 35)
+        frame.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+        frame.Parent = container
+        Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 4)
+
+        local lbl = Instance.new("TextLabel")
+        lbl.Size = UDim2.new(0.6, 0, 1, 0)
+        lbl.Position = UDim2.new(0, 10, 0, 0)
+        lbl.BackgroundTransparency = 1
+        lbl.Text = labelText
+        lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+        lbl.Font = Enum.Font.GothamSemibold
+        lbl.TextSize = 13
+        lbl.TextXAlignment = Enum.TextXAlignment.Left
+        lbl.Parent = frame
+
+        local input = Instance.new("TextBox")
+        input.Size = UDim2.new(0.35, -5, 0.8, 0)
+        input.Position = UDim2.new(0.65, 0, 0.1, 0)
+        input.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+        input.TextColor3 = Color3.fromRGB(150, 255, 150)
+        input.Font = Enum.Font.GothamBold
+        input.TextSize = 14
+        input.Text = tostring(defaultVal)
+        input.Parent = frame
+        Instance.new("UICorner", input).CornerRadius = UDim.new(0, 4)
+        
+        input.FocusLost:Connect(function()
+            local num = tonumber(input.Text)
+            if num then callback(num)
+            else input.Text = tostring(defaultVal) end
+        end)
+    end
+
+    -- ==========================================
+    -- ⚙️ SEÇÃO DE CONFIGURAÇÕES GLOBAIS (NOVO)
+    -- ==========================================
+    UI:CreateSection(tabName, "⚙️ Performance e Controle")
+
+    CreateInput("🚀 Velocidade de Voo (Studs/s):", GameData.Settings.SlideSpeed, function(val)
+        GameData.Settings.SlideSpeed = val
+    end)
+
+    CreateInput("⏱️ Delay de Ação (Segundos):", GameData.Settings.ActionDelay, function(val)
+        GameData.Settings.ActionDelay = val
+    end)
 
     -- ==========================================
     -- 🪄 SEÇÃO DE SELEÇÃO DE SKILLS (AUTO SKILL)
@@ -98,42 +151,8 @@ function WeaponService:BuildUI(tabName)
         CombatService.AttackPosition = val
     end)
 
-    local distanceFrame = Instance.new("Frame")
-    distanceFrame.Size = UDim2.new(1, -10, 0, 35)
-    distanceFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-    distanceFrame.Parent = container
-    Instance.new("UICorner", distanceFrame).CornerRadius = UDim.new(0, 4)
-
-    local distanceLabel = Instance.new("TextLabel")
-    distanceLabel.Size = UDim2.new(0.6, 0, 1, 0)
-    distanceLabel.Position = UDim2.new(0, 10, 0, 0)
-    distanceLabel.BackgroundTransparency = 1
-    distanceLabel.Text = "📏 Distância (Studs):"
-    distanceLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    distanceLabel.Font = Enum.Font.GothamSemibold
-    distanceLabel.TextSize = 13
-    distanceLabel.TextXAlignment = Enum.TextXAlignment.Left
-    distanceLabel.Parent = distanceFrame
-
-    local distanceInput = Instance.new("TextBox")
-    distanceInput.Size = UDim2.new(0.35, -5, 0.8, 0)
-    distanceInput.Position = UDim2.new(0.65, 0, 0.1, 0)
-    distanceInput.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-    distanceInput.TextColor3 = Color3.fromRGB(150, 255, 150)
-    distanceInput.Font = Enum.Font.GothamBold
-    distanceInput.TextSize = 14
-    distanceInput.Text = tostring(CombatService.AttackDistance or 6)
-    distanceInput.PlaceholderText = "Ex: 15"
-    distanceInput.Parent = distanceFrame
-    Instance.new("UICorner", distanceInput).CornerRadius = UDim.new(0, 4)
-    
-    distanceInput.FocusLost:Connect(function()
-        local num = tonumber(distanceInput.Text)
-        if num then
-            CombatService.AttackDistance = num
-        else
-            distanceInput.Text = tostring(CombatService.AttackDistance or 6) 
-        end
+    CreateInput("📏 Distância de Ataque (Studs):", CombatService.AttackDistance or 6, function(val)
+        CombatService.AttackDistance = val
     end)
 
     -- ==========================================
