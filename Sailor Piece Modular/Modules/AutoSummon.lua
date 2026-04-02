@@ -59,8 +59,8 @@ function Module:GetBossModel(targetName, difficulty)
     local cleanDiff = difficulty and difficulty:lower() or ""
     
     if cleanTarget == "strongesttoday" then cleanTarget = "strongestoftoday" end
-    if cleanTarget == "strongesthistory" then cleanTarget = "strongestofhistory" end
-
+    if cleanTarget == "strongesthistory" then cleanTarget = "strongestinhistory" end
+    
     local function CheckNPC(npc)
         if npc:IsA("Model") then
             local hum = npc:FindFirstChild("Humanoid")
