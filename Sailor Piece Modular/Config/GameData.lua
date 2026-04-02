@@ -292,4 +292,9 @@ GameData.SummonBosses = {
     }
 }
 
+GameData.Settings = {
+    SlideSpeed = 200,
+    ActionDelay = 1.0
+}
+
 return GameData
