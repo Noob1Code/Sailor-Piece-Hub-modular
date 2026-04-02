@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🔮 MÓDULO: AUTO SUMMON BOSS (COM VISÃO DE RAIOS-X PARA PASTAS DE SPAWN)
+-- 🔮 MÓDULO: AUTO SUMMON BOSS (LEITURA EXATA DE NOME + DIFICULDADE)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -49,12 +49,17 @@ function Module:GetCurrentIsland(hrp)
     return closestIsland
 end
 
-function Module:GetBossModel(targetName)
+-- 🔥 AGORA O GETBOSSMODEL RECEBE A DIFICULDADE COMO PARÂMETRO!
+function Module:GetBossModel(targetName, difficulty)
     local closest, minDist = nil, math.huge
     local hrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
     if not hrp then return nil end
     
     local cleanTarget = targetName:gsub("[%d%s_]+", ""):lower()
+    local cleanDiff = difficulty and difficulty:lower() or ""
+    
+    if cleanTarget == "strongesttoday" then cleanTarget = "strongestoftoday" end
+    if cleanTarget == "strongesthistory" then cleanTarget = "strongestofhistory" end
 
     local function CheckNPC(npc)
         if npc:IsA("Model") then
@@ -62,7 +67,16 @@ function Module:GetBossModel(targetName)
             local npcBase = npc:FindFirstChild("HumanoidRootPart")
             if hum and hum.Health > 0 and npcBase then
                 local cleanNpcName = npc.Name:gsub("[%d%s_]+", ""):lower()
-                if cleanNpcName == cleanTarget or cleanNpcName:find(cleanTarget) then
+                
+                -- Verifica se o nome base do Boss bate
+                if cleanNpcName:find(cleanTarget) then
+                    -- Se a ilha tiver dificuldade, exige que a dificuldade esteja no nome do modelo
+                    if cleanDiff ~= "" and cleanDiff ~= "padrão" then
+                        if not cleanNpcName:find(cleanDiff) then
+                            return -- Ignora se for a dificuldade errada!
+                        end
+                    end
+                    
                     local dist = (hrp.Position - npcBase.Position).Magnitude
                     if dist < minDist then minDist = dist; closest = npc end
                 end
@@ -71,8 +85,7 @@ function Module:GetBossModel(targetName)
     end
 
     for _, folder in ipairs(Workspace:GetChildren()) do
-        CheckNPC(folder)
-        
+        CheckNPC(folder) 
         if folder.Name:find("BossSpawn_") or folder.Name:lower():find(cleanTarget) or folder.Name == "NPCs" or folder.Name:find("TimedBoss") then
             for _, npc in ipairs(folder:GetDescendants()) do
                 CheckNPC(npc)
@@ -231,8 +244,9 @@ function Module:StartFarm()
                 continue
             end
             
+            -- 🔥 Passando a Dificuldade para o Buscador!
             if not self.TargetBossModel or not self.TargetBossModel:FindFirstChild("Humanoid") or self.TargetBossModel.Humanoid.Health <= 0 then
-                self.TargetBossModel = self:GetBossModel(self.SelectedSummonBoss)
+                self.TargetBossModel = self:GetBossModel(self.SelectedSummonBoss, self.SelectedDifficulty)
             end
             
             if self.TargetBossModel then
