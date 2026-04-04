@@ -305,10 +305,19 @@ GameData.Collectibles = {
             "Shibuya Station",
             "Hollow Island",
             "Shinjuku"
+        },
+        -- 🔥 NOVO: Coordenadas fixas de Posição para forçar renderização!
+        Positions = {
+            ["Starter"] = Vector3.new(61, 32, -145),
+            ["Desert"] = Vector3.new(-584, 54, 317),
+            ["Starter"] = Vector3.new(61, 32, -145),
+            ["Snow"] = Vector3.new(61, 32, -145),
+            ["Shibuya Station"] = Vector3.new(1744, 6, 494),
+            ["Hollow Island"] = Vector3.new(-436, 23, 1399),
+            ["Shinjuku"] = Vector3.new(787, 64, -2310)
+            -- Nota: Desert e Snow deixados em branco, o script vai achar usando a varredura caso não estejam aqui!
         }
     }
-    -- 💡 Para adicionar novos itens no futuro, basta duplicar o bloco acima
-    -- e mudar o TargetName e a IslandOrder! O Hub fará o resto.
 }
 
 GameData.Settings = {
