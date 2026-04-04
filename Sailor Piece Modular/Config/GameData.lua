@@ -309,14 +309,13 @@ GameData.Collectibles = {
         Positions = {
             ["Starter"] = Vector3.new(61, 32, -145),
             ["Desert"] = Vector3.new(-584, 54, 317),
-            ["Starter"] = Vector3.new(61, 32, -145),
             ["Snow"] = Vector3.new(61, 32, -145),
             ["Shibuya Station"] = Vector3.new(1744, 6, 494),
             ["Hollow Island"] = Vector3.new(-436, 23, 1399),
             ["Shinjuku"] = Vector3.new(787, 64, -2310)
         }
     },
-        ["Peça da Dungle (Puzzle)"] = {
+    ["Peça da Dungle (Puzzle)"] = {
         TargetName = "DungeonPuzzlePiece",
         IslandOrder = {
             "Starter",
