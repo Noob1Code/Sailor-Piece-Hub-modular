@@ -107,10 +107,10 @@ GameData.QuestDataMap = {
         { Name = "Âncora de Ilha", NPC = "SummonBossNPC", Target = "Nenhum", Type = "Mob" }
     },
     ["Ninja"] = {
-        { Name = "Quest 18: Mobs", NPC = "QuestNPC18", Target = "Shinobi", Tracker = "Shinobi Hunter", Type = "Mob" }
+        { Name = "Quest 18: Mobs", NPC = "QuestNPC18", Target = "Ninja", Tracker = "Ninja Slayer", Type = "Mob" }
     },
     ["Lawless"] = {
-        { Name = "Quest 19: Mobs", NPC = "QuestNPC19", Target = "LawlessMob", Tracker = "Lawless Hunter", Type = "Mob" }
+        { Name = "Quest 19: Mobs", NPC = "QuestNPC19", Target = "ArenaFighter", Tracker = "Arena Takedown", Type = "Mob" }
     }
 }
 
