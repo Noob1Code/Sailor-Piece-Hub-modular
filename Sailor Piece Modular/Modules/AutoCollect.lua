@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🧩 MÓDULO: AUTO COLLECT (MOTOR UNIVERSAL + FILTRO ESTRITO DE PASTAS)
+-- 🧩 MÓDULO: AUTO COLLECT (MOTOR UNIVERSAL + POSIÇÕES FIXAS DE RESGATE)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -251,9 +251,23 @@ function Module:StartFarm()
                     end
                 end
             else
-                self.Patience = self.Patience + 1
-                if self.Patience > 10 then self.Patience = 0 end
-                RandomService:Wait(1.0, 1.5)
+                local fixedPos = config.Positions and config.Positions[targetIsland]
+                
+                if fixedPos then
+                    if (hrp.Position - fixedPos).Magnitude > 50 then
+                        self.ProgressLabel.Text = "Forçando Renderização (Ilha: " .. targetIsland .. ")..."
+                        TeleportService:FlyTo(fixedPos + Vector3.new(0, 30, 0))
+                        task.wait(1)
+                    else
+                        self.Patience = self.Patience + 1
+                        if self.Patience > 10 then self.Patience = 0 end
+                        RandomService:Wait(1.0, 1.5)
+                    end
+                else
+                    self.Patience = self.Patience + 1
+                    if self.Patience > 10 then self.Patience = 0 end
+                    RandomService:Wait(1.0, 1.5)
+                end
             end
         end
     end)
