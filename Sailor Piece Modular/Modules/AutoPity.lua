@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🍀 MÓDULO: AUTO PITY (LEITURA EXATA DE NOME + DIFICULDADE)
+-- 🍀 MÓDULO: AUTO PITY (DIFICULDADE DINÂMICA POR BOSS)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -43,11 +43,21 @@ function Module:Init()
     if GameData.SummonBosses then
         for islandName, rules in pairs(GameData.SummonBosses) do
             for _, bossName in ipairs(rules.Bosses) do
+                
+                local reqDiff = false
+                if type(rules.RequiresDifficulty) == "boolean" then
+                    reqDiff = rules.RequiresDifficulty
+                elseif type(rules.RequiresDifficulty) == "table" then
+                    for _, rb in ipairs(rules.RequiresDifficulty) do
+                        if rb == bossName then reqDiff = true; break end
+                    end
+                end
+
                 table.insert(self.AllBosses, { 
                     Target = bossName, 
                     Island = islandName, 
                     Type = "Summon",
-                    RequiresDifficulty = rules.RequiresDifficulty,
+                    RequiresDifficulty = reqDiff,
                     Difficulties = rules.Difficulties,
                     SummonRemote = rules.SummonRemote,
                     AutoRemote = rules.AutoRemote,
@@ -95,7 +105,6 @@ function Module:GetCurrentIsland(hrp)
     return closestIsland
 end
 
--- 🔥 AGORA O GETBOSSMODEL RECEBE A DIFICULDADE COMO PARÂMETRO!
 function Module:GetBossModel(targetName, difficulty)
     local closest, minDist = nil, math.huge
     local hrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
@@ -328,7 +337,6 @@ function Module:StartFarm()
                     continue
                 end
 
-                -- 🔥 Passando a Dificuldade para o Buscador!
                 if not self.TargetBossModel or not self.TargetBossModel:FindFirstChild("Humanoid") or self.TargetBossModel.Humanoid.Health <= 0 then
                     self.TargetBossModel = self:GetBossModel(targetData.Target, self.SelectedDifficulty)
                 end
