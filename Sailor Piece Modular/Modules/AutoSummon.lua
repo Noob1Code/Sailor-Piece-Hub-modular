@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🔮 MÓDULO: AUTO SUMMON BOSS (DIFICULDADE DINÂMICA POR BOSS)
+-- 🔮 MÓDULO: AUTO SUMMON BOSS (DIFICULDADE DINÂMICA E PASTAS VARIÁVEIS)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -44,7 +44,6 @@ function Module:Init()
     self.SelectedDifficulty = diffs[1]
     
     self.LastSummonState = false
-    self.RemotesFolder = ReplicatedStorage:WaitForChild("Remotes", 5)
 end
 
 function Module:GetCurrentIsland(hrp)
@@ -194,11 +193,9 @@ function Module:Start()
 
     bossDropdown = CreateDynamicDropdown(container, "📍 Boss: " .. self.SelectedSummonBoss, self.CurrentIslandRules.Bosses, function(boss)
         self.SelectedSummonBoss = boss
-        
         local reqDiff = CheckIfRequiresDifficulty(self.CurrentIslandRules, boss)
         local diffs = reqDiff and self.CurrentIslandRules.Difficulties or {"Padrão"}
         self.SelectedDifficulty = diffs[1]
-        
         if diffDropdown then diffDropdown.Refresh(diffs, "🔥 Dif: " .. self.SelectedDifficulty) end
     end)
     
@@ -210,11 +207,18 @@ function Module:Start()
 end
 
 function Module:FireRemote(remoteName)
-    if not self.RemotesFolder then return end
-    local remote = self.RemotesFolder:FindFirstChild(remoteName)
+    local folderName = self.CurrentIslandRules.RemoteFolder or "Remotes"
+    local remotesFolder = ReplicatedStorage:FindFirstChild(folderName)
+    if not remotesFolder then return end
+    
+    local remote = remotesFolder:FindFirstChild(remoteName)
     if remote then
         if CheckIfRequiresDifficulty(self.CurrentIslandRules, self.SelectedSummonBoss) then
-            pcall(function() remote:FireServer(self.SelectedSummonBoss, self.SelectedDifficulty) end)
+            if self.CurrentIslandRules.DifficultyOnly then
+                pcall(function() remote:FireServer(self.SelectedDifficulty) end)
+            else
+                pcall(function() remote:FireServer(self.SelectedSummonBoss, self.SelectedDifficulty) end)
+            end
         else
             pcall(function() remote:FireServer(self.SelectedSummonBoss) end)
         end
