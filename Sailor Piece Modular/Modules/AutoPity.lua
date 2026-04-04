@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🍀 MÓDULO: AUTO PITY (DIFICULDADE DINÂMICA POR BOSS)
+-- 🍀 MÓDULO: AUTO PITY (DIFICULDADE DINÂMICA E PASTAS VARIÁVEIS)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -58,6 +58,8 @@ function Module:Init()
                     Island = islandName, 
                     Type = "Summon",
                     RequiresDifficulty = reqDiff,
+                    DifficultyOnly = rules.DifficultyOnly,
+                    RemoteFolder = rules.RemoteFolder,
                     Difficulties = rules.Difficulties,
                     SummonRemote = rules.SummonRemote,
                     AutoRemote = rules.AutoRemote,
@@ -72,7 +74,6 @@ function Module:Init()
     self.SelectedPityBoss = self.AllBosses[1]
     self.SelectedDifficulty = "Padrão"
     self.LastSummonState = false
-    self.RemotesFolder = ReplicatedStorage:WaitForChild("Remotes", 5)
 end
 
 function Module:ReadPityFromScreen()
@@ -281,11 +282,20 @@ function Module:Start()
 end
 
 function Module:FirePityRemote(remoteName)
-    if not self.RemotesFolder or not self.SelectedPityBoss then return end
-    local remote = self.RemotesFolder:FindFirstChild(remoteName)
+    if not self.SelectedPityBoss then return end
+    
+    local folderName = self.SelectedPityBoss.RemoteFolder or "Remotes"
+    local remotesFolder = ReplicatedStorage:FindFirstChild(folderName)
+    if not remotesFolder then return end
+    
+    local remote = remotesFolder:FindFirstChild(remoteName)
     if remote then
         if self.SelectedPityBoss.RequiresDifficulty then
-            pcall(function() remote:FireServer(self.SelectedPityBoss.Target, self.SelectedDifficulty) end)
+            if self.SelectedPityBoss.DifficultyOnly then
+                pcall(function() remote:FireServer(self.SelectedDifficulty) end)
+            else
+                pcall(function() remote:FireServer(self.SelectedPityBoss.Target, self.SelectedDifficulty) end)
+            end
         else
             pcall(function() remote:FireServer(self.SelectedPityBoss.Target) end)
         end
