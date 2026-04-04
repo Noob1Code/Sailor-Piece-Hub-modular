@@ -315,7 +315,7 @@ GameData.Collectibles = {
             ["Hollow Island"] = Vector3.new(-436, 23, 1399),
             ["Shinjuku"] = Vector3.new(787, 64, -2310)
         }
-    }
+    },
         ["Peça da Dungle (Puzzle)"] = {
         TargetName = "DungeonPuzzlePiece",
         IslandOrder = {
