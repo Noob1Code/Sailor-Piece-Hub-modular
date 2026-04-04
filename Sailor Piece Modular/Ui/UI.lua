@@ -317,6 +317,7 @@ function UI:Start()
     self:CreateTab("Chefes (Boss)")
     self:CreateTab("Mundo & Teleporte")
     self:CreateTab("Gacha & Itens")
+    self:CreateTab("Coletáveis")
     self:CreateTab("Misc & Config")
 end
 
