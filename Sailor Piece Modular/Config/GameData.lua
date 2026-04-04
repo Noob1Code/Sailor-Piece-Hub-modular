@@ -49,7 +49,7 @@ GameData.NpcList = {
     "SaberAlterMasteryNPC", "BabylonCraftNPC", "GrailCraftNPC",
     -- Dungeon / Shinjuku / Slime
     "DungeonMerchantNPC", "DungeonPortalsNPC", "CidBuyer", "ShadowMonarchBuyerNPC",
-    "StrongestofTodayBuyerNPC", "StrongestinHistoryBuyerNPC", "StrongestBossSummonerNPC",
+    "StrongestofTodayBuyerNPC", "StrongestinHistoryBuyerNPC", "StrongestBossSummonerNPC", "SukunaCraftNPC",
     "SkillTreeNPC", "SlimeCraftNPC", "RimuruSummonerNPC", "RimuruMasteryNPC", "RimuruBuyer",
     -- Academy / Judgement / Soul Dominion
     "AnosQuestNPC", "AnosBossSummonerNPC", "AnosBuyerNPC", "YamatoBuyerNPC", "SpecPassivesNPC",
@@ -154,7 +154,7 @@ GameData.NpcToIsland = {
     ["BabylonCraftNPC"] = "Boss Island", ["GrailCraftNPC"] = "Boss Island", ["SummonBossNPC"] = "Boss Island",
     -- Dungeon & Shinjuku
     ["DungeonMerchantNPC"] = "Dungeon", ["DungeonPortalsNPC"] = "Dungeon", ["CidBuyer"] = "Dungeon", ["ShadowMonarchBuyerNPC"] = "Dungeon",
-    ["StrongestofTodayBuyerNPC"] = "Shinjuku", ["StrongestinHistoryBuyerNPC"] = "Shinjuku", ["StrongestBossSummonerNPC"] = "Shinjuku",
+    ["StrongestofTodayBuyerNPC"] = "Shinjuku", ["StrongestinHistoryBuyerNPC"] = "Shinjuku", ["StrongestBossSummonerNPC"] = "Shinjuku", ["SukunaCraftNPC"] = "Shinjuku",
     -- Slime, Academy & Judgement
     ["SkillTreeNPC"] = "Slime", ["SlimeCraftNPC"] = "Slime", ["RimuruSummonerNPC"] = "Slime", ["RimuruMasteryNPC"] = "Slime", ["RimuruBuyer"] = "Slime",
     ["AnosQuestNPC"] = "Academy", ["AnosBossSummonerNPC"] = "Academy", ["AnosBuyerNPC"] = "Academy",
