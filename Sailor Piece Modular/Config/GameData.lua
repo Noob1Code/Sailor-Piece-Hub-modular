@@ -268,9 +268,11 @@ GameData.SummonBosses = {
         Bosses = {"Anos"}
     },
     ["Soul Dominion"] = {
-        SummonRemote = "RequestSummonBoss",
-        AutoRemote = "RequestAutoSpawn",
-        RequiresDifficulty = false,
+        SummonRemote = "RequestSpawnTrueAizen",
+        AutoRemote = "RequestAutoSpawnTrueAizen",
+        RemoteFolder = "RemoteEvents",
+        RequiresDifficulty = true,
+        DifficultyOnly = true,
         Difficulties = {"Normal", "Medium", "Hard", "Extreme"},
         SummonNPC = "TrueAizenBossSummonerNPC",
         SummonPosition = Vector3.new(-1284, 1603, 1751),
