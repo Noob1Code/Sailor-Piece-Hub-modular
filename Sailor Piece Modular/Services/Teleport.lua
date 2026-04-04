@@ -192,7 +192,7 @@ end
 -- ========================================================================
 function Module:Start()
     local tabName = "Mundo & Teleporte"
-    local container = UI.Tabs[tabName].Containe
+    local container = UI.Tabs[tabName].Container
     
     UI:CreateSection(tabName, "Viagem Interdimensional")
 
