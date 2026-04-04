@@ -312,7 +312,7 @@ GameData.Collectibles = {
 }
 
 GameData.Settings = {
-    SlideSpeed = 200,
+    SlideSpeed = 150,
     ActionDelay = 1.0
 }
 
