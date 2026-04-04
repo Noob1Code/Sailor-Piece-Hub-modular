@@ -3,11 +3,12 @@
 -- ========================================================================
 local PriorityService = {
     Priorities = {
-        ["PitySystem"] = 100,   
-        ["AutoBoss"] = 80,      
+        ["PitySystem"] = 100,
+        ["AutoBoss"] = 80, 
         ["AutoSummon"] = 70,
-        ["AutoQuest"] = 50,     
-        ["AutoFarm"] = 10       
+        ["AutoCollect"] = 60,
+        ["AutoQuest"] = 50,
+        ["AutoFarm"] = 10
     },
     
     ActiveRequests = {},
