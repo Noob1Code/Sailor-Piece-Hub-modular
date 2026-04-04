@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🧩 MÓDULO: AUTO COLLECT (MOTOR UNIVERSAL DE ROTAS + SCAN DE PROXIMIDADE)
+-- 🧩 MÓDULO: AUTO COLLECT (MOTOR UNIVERSAL + FILTRO ESTRITO DE PASTAS)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -43,14 +43,21 @@ function Module:GetCurrentIsland(hrp)
     return closestIsland
 end
 
-function Module:GetItemModel(targetName)
+function Module:GetItemModel(targetName, targetIsland)
     local closest, minDist = nil, math.huge
     local hrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
     if not hrp then return nil end
 
+    local cleanIsland = targetIsland and targetIsland:gsub("%s+", "") or ""
+
     for _, obj in ipairs(Workspace:GetDescendants()) do
         if obj.Name == targetName and (obj:IsA("Model") or obj:IsA("BasePart")) then
             
+            local path = obj:GetFullName()
+            if cleanIsland ~= "" and not path:find(cleanIsland) then
+                continue
+            end
+
             local itemPos = nil
             if obj:IsA("BasePart") then
                 itemPos = obj.Position
@@ -65,7 +72,7 @@ function Module:GetItemModel(targetName)
                 local dist = (hrp.Position - itemPos).Magnitude
                 if dist < minDist then
                     minDist = dist
-                    closest = obj
+                    closest = obj 
                 end
             end
             
@@ -211,7 +218,7 @@ function Module:StartFarm()
             end
             
             if not self.CurrentItemObj or not self.CurrentItemObj.Parent then
-                self.CurrentItemObj = self:GetItemModel(config.TargetName)
+                self.CurrentItemObj = self:GetItemModel(config.TargetName, targetIsland)
             end
             
             if self.CurrentItemObj then
