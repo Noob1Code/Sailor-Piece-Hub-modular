@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🛒 MÓDULO: AUTO MERCHANT (COMPRAS REMOTAS E INSTANTÂNEAS)
+-- 🛒 MÓDULO: AUTO MERCHANT (TENTATIVA POR TEMPO / 5 MINUTOS)
 -- ========================================================================
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -21,6 +21,20 @@ function Module:Init()
         "Passive Shard"
     }
     self.SelectedItem = self.Items[1]
+    
+    self.SelectedToBuy = {} 
+    self.IsRunning = false
+    self.ActiveLabel = nil
+    self.StatusLabel = nil
+end
+
+function Module:UpdateLabel()
+    if not self.ActiveLabel then return end
+    if #self.SelectedToBuy == 0 then
+        self.ActiveLabel.Text = "Lista de Compras: Vazia"
+    else
+        self.ActiveLabel.Text = "Lista de Compras: " .. table.concat(self.SelectedToBuy, ", ")
+    end
 end
 
 local function CreateDynamicDropdown(container, defaultText, options, callback)
@@ -92,31 +106,113 @@ end
 
 function Module:Start()
     local tabName = "Gacha & Itens"
-    UI:CreateSection(tabName, "🛒 Merchant Remoto (Sailor Island)")
+    UI:CreateSection(tabName, "🛒 Auto Merchant (Loja em 2º Plano)")
     local container = UI.Tabs[tabName].Container
 
-    local itemDropdown = CreateDynamicDropdown(container, "📦 Item: " .. self.SelectedItem, self.Items, function(item)
+    self.ActiveLabel = Instance.new("TextLabel")
+    self.ActiveLabel.Size = UDim2.new(1, -10, 0, 30)
+    self.ActiveLabel.BackgroundTransparency = 1
+    self.ActiveLabel.TextColor3 = Color3.fromRGB(150, 255, 150)
+    self.ActiveLabel.Font = Enum.Font.GothamSemibold
+    self.ActiveLabel.TextSize = 12
+    self.ActiveLabel.TextWrapped = true
+    self.ActiveLabel.Parent = container
+    self:UpdateLabel()
+
+    self.StatusLabel = Instance.new("TextLabel")
+    self.StatusLabel.Size = UDim2.new(1, -10, 0, 20)
+    self.StatusLabel.BackgroundTransparency = 1
+    self.StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    self.StatusLabel.Font = Enum.Font.Gotham
+    self.StatusLabel.TextSize = 11
+    self.StatusLabel.Text = "Status: Aguardando..."
+    self.StatusLabel.Parent = container
+
+    local itemDropdown = CreateDynamicDropdown(container, "📦 Selecione o Item: " .. self.SelectedItem, self.Items, function(item)
         self.SelectedItem = item
     end)
 
-    UI:CreateButton(tabName, "💰 Comprar o Máximo (Insta-Buy)", function()
-        task.spawn(function()
-            pcall(function()
-                local merchantRemotes = ReplicatedStorage:FindFirstChild("Remotes") 
-                                     and ReplicatedStorage.Remotes:FindFirstChild("MerchantRemotes")
-                
-                local purchaseRemote = merchantRemotes and merchantRemotes:FindFirstChild("PurchaseMerchantItem")
-                
-                if purchaseRemote and purchaseRemote:IsA("RemoteFunction") then
-                    -- Usa InvokeServer porque é uma RemoteFunction que espera resposta do servidor
-                    purchaseRemote:InvokeServer(self.SelectedItem, 999)
-                end
-            end)
-        end)
+    UI:CreateButton(tabName, "➕ Adicionar à Lista", function()
+        if self.SelectedItem then
+            for _, w in ipairs(self.SelectedToBuy) do if w == self.SelectedItem then return end end
+            table.insert(self.SelectedToBuy, self.SelectedItem)
+            self:UpdateLabel()
+        end
+    end)
+
+    UI:CreateButton(tabName, "➖ Remover da Lista", function()
+        for i, w in ipairs(self.SelectedToBuy) do
+            if w == self.SelectedItem then
+                table.remove(self.SelectedToBuy, i)
+                self:UpdateLabel()
+                break
+            end
+        end
+    end)
+
+    UI:CreateButton(tabName, "🗑️ Limpar Toda a Lista", function()
+        self.SelectedToBuy = {}
+        self:UpdateLabel()
+    end)
+
+    UI:CreateToggle(tabName, "Ligar Auto Compra (Intervalo de 5 Min)", function(state)
+        self:Toggle(state)
     end)
 end
 
-function Module:Stop() end
-function Module:Toggle(state) end
+function Module:StartFarm()
+    if self.IsRunning then return end
+    self.IsRunning = true
+
+    if self.BrainLoop then task.cancel(self.BrainLoop); self.BrainLoop = nil end
+
+    self.BrainLoop = task.spawn(function()
+        local merchantRemotes = ReplicatedStorage:FindFirstChild("Remotes") 
+                             and ReplicatedStorage.Remotes:FindFirstChild("MerchantRemotes")
+                             
+        local purchaseRemote = merchantRemotes and merchantRemotes:FindFirstChild("PurchaseMerchantItem")
+        
+        local countdown = 0
+
+        while self.IsRunning and task.wait(1) do 
+            if #self.SelectedToBuy == 0 then
+                self.StatusLabel.Text = "Status: Lista vazia. Adicione itens."
+                countdown = 0
+                continue
+            end
+
+            if countdown <= 0 then
+                self.StatusLabel.Text = "Status: Tentando comprar itens silenciosamente..."
+                
+                if purchaseRemote and purchaseRemote:IsA("RemoteFunction") then
+                    for _, itemName in ipairs(self.SelectedToBuy) do
+                        if not self.IsRunning then break end
+                        
+                        pcall(function()
+                            purchaseRemote:InvokeServer(itemName, 999)
+                        end)
+                        
+                        task.wait(0.5)
+                    end
+                end
+                
+                countdown = 300
+            else
+                self.StatusLabel.Text = "Status: Próxima tentativa em " .. countdown .. "s"
+                countdown = countdown - 1
+            end
+        end
+    end)
+end
+
+function Module:StopFarm()
+    self.IsRunning = false
+    if self.StatusLabel then self.StatusLabel.Text = "Status: Desligado." end
+    if self.BrainLoop then task.cancel(self.BrainLoop); self.BrainLoop = nil end
+end
+
+function Module:Toggle(state)
+    if state then self:StartFarm() else self:StopFarm() end
+end
 
 return Module
