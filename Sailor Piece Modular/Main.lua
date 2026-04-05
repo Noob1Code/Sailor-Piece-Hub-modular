@@ -74,6 +74,10 @@ local AutoCollectModule = Import("Modules/AutoCollect")
 Core:RegisterModule("Motor de Coleta", "Coletáveis", AutoCollectModule)
 task.wait(0.5)
 
+local AutoMerchantModule = Import("Modules/AutoMerchant")
+Core:RegisterModule("Mercador Remoto", "Gacha & Itens", AutoMerchantModule)
+task.wait(0.5)
+
 function Core:Init()
     self.UI:Init(Config)
     
