@@ -29,11 +29,20 @@ function Module:Init()
 end
 
 function Module:UpdateLabel()
-    if not self.ActiveLabel then return end
+    -- 🔥 SEGURANÇA: Só atualiza se a label existir e estiver na tela (evita erros ao usar o botão Voltar)
+    if not self.ActiveLabel or not self.ActiveLabel.Parent then return end
+    
     if #self.SelectedToBuy == 0 then
         self.ActiveLabel.Text = "Lista de Compras: Vazia"
     else
         self.ActiveLabel.Text = "Lista de Compras: " .. table.concat(self.SelectedToBuy, ", ")
+    end
+end
+
+function Module:UpdateStatus(text)
+    -- 🔥 SEGURANÇA: Só atualiza o status visual se o menu do Merchant estiver aberto
+    if self.StatusLabel and self.StatusLabel.Parent then
+        self.StatusLabel.Text = text
     end
 end
 
@@ -104,7 +113,7 @@ local function CreateDynamicDropdown(container, defaultText, options, callback)
     return { Refresh = function(newOptions, resetText) defaultText = resetText; mainBtn.Text = defaultText .. " ▼"; populate(newOptions) end }
 end
 
-function Module:Start()
+function Module:BuildUI()
     local tabName = "Gacha & Itens"
     UI:CreateSection(tabName, "🛒 Auto Merchant (Loja em 2º Plano)")
     local container = UI.Tabs[tabName].Container
@@ -115,7 +124,6 @@ function Module:Start()
     self.ActiveLabel.TextColor3 = Color3.fromRGB(150, 255, 150)
     self.ActiveLabel.Font = Enum.Font.GothamSemibold
     self.ActiveLabel.TextSize = 12
-    self.ActiveLabel.TextWrapped = true
     self.ActiveLabel.Parent = container
     self:UpdateLabel()
 
@@ -125,7 +133,7 @@ function Module:Start()
     self.StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
     self.StatusLabel.Font = Enum.Font.Gotham
     self.StatusLabel.TextSize = 11
-    self.StatusLabel.Text = "Status: Aguardando..."
+    self.StatusLabel.Text = self.IsRunning and "Status: Rodando em 2º Plano..." or "Status: Aguardando..."
     self.StatusLabel.Parent = container
 
     local itemDropdown = CreateDynamicDropdown(container, "📦 Selecione o Item: " .. self.SelectedItem, self.Items, function(item)
@@ -140,7 +148,6 @@ function Module:Start()
         end
     end)
 
-    -- 🔥 NOVO BOTÃO: Adicionar todos os itens disponíveis de uma vez
     UI:CreateButton(tabName, "➕ Adicionar Todos à Lista", function()
         for _, item in ipairs(self.Items) do
             local found = false
@@ -177,6 +184,8 @@ function Module:Start()
     end)
 end
 
+function Module:Start() end
+
 function Module:StartFarm()
     if self.IsRunning then return end
     self.IsRunning = true
@@ -193,13 +202,13 @@ function Module:StartFarm()
 
         while self.IsRunning and task.wait(1) do 
             if #self.SelectedToBuy == 0 then
-                self.StatusLabel.Text = "Status: Lista vazia. Adicione itens."
+                self:UpdateStatus("Status: Lista vazia. Adicione itens.")
                 countdown = 0
                 continue
             end
 
             if countdown <= 0 then
-                self.StatusLabel.Text = "Status: Tentando comprar itens silenciosamente..."
+                self:UpdateStatus("Status: Tentando comprar itens silenciosamente...")
                 
                 if purchaseRemote and purchaseRemote:IsA("RemoteFunction") then
                     for _, itemName in ipairs(self.SelectedToBuy) do
@@ -215,7 +224,7 @@ function Module:StartFarm()
                 
                 countdown = 300
             else
-                self.StatusLabel.Text = "Status: Próxima tentativa em " .. countdown .. "s"
+                self:UpdateStatus("Status: Próxima tentativa em " .. countdown .. "s")
                 countdown = countdown - 1
             end
         end
@@ -224,7 +233,7 @@ end
 
 function Module:StopFarm()
     self.IsRunning = false
-    if self.StatusLabel then self.StatusLabel.Text = "Status: Desligado." end
+    self:UpdateStatus("Status: Desligado.")
     if self.BrainLoop then task.cancel(self.BrainLoop); self.BrainLoop = nil end
 end
 
