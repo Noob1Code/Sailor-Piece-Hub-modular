@@ -1,11 +1,10 @@
 -- ========================================================================
--- 🎲 MÓDULO: AUTO REROLL STATS (CONECTADO AO SISTEMA NATIVO DO JOGO)
+-- 🎲 MÓDULO: AUTO REROLL STATS (INTERAÇÃO COM MENU NATIVO)
 -- ========================================================================
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local UI = Import("Ui/UI")
-local TeleportService = Import("Services/Teleport")
 
 local Module = { NoToggle = true }
 
@@ -21,8 +20,6 @@ function Module:Init()
     }
     self.SelectedStat = self.StatsList[1]
     
-    -- Começa com tudo false (Não pular nenhum). 
-    -- Se o usuário ativar o Toggle na UI, vira true (Pula o rank).
     self.SkipConfig = {
         ["A"] = false,
         ["S"] = false,
@@ -100,34 +97,30 @@ end
 
 function Module:Start()
     local tabName = "Gacha & Itens"
-    UI:CreateSection(tabName, "🎲 Auto Reroll de Status (Sailor Island)")
+    UI:CreateSection(tabName, "🎲 Auto Reroll de Status")
     local container = UI.Tabs[tabName].Container
 
-    -- Botão para garantir que você está do lado do NPC de Reroll
-    UI:CreateButton(tabName, "✈️ Voar para NPC de Reroll", function()
-        TeleportService:FlyToNPC("RerollStatNPC")
+    UI:CreateButton(tabName, "🖥️ Abrir Menu de Reroll (Nativo)", function()
+        pcall(function()
+            local remote = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("GetStatRerollData")
+            if remote and remote:IsA("RemoteFunction") then
+                remote:InvokeServer()
+            end
+        end)
     end)
 
     CreateDynamicDropdown(container, "🎯 Status: " .. self.SelectedStat, self.StatsList, function(stat)
         self.SelectedStat = stat
     end)
 
-    UI:CreateToggle(tabName, "Pular Rank [A]", function(state)
-        self.SkipConfig["A"] = state
-    end)
-    UI:CreateToggle(tabName, "Pular Rank [S]", function(state)
-        self.SkipConfig["S"] = state
-    end)
-    UI:CreateToggle(tabName, "Pular Rank [SS]", function(state)
-        self.SkipConfig["SS"] = state
-    end)
-    UI:CreateToggle(tabName, "Pular Rank [SSS]", function(state)
-        self.SkipConfig["SSS"] = state
-    end)
+    UI:CreateSection(tabName, "Filtro de Ranks (Auto-Skip)")
 
-    UI:CreateToggle(tabName, "Ligar Auto Reroll Nativo", function(state)
-        self:Toggle(state)
-    end)
+    UI:CreateToggle(tabName, "Pular Rank [A]", function(state) self.SkipConfig["A"] = state end)
+    UI:CreateToggle(tabName, "Pular Rank [S]", function(state) self.SkipConfig["S"] = state end)
+    UI:CreateToggle(tabName, "Pular Rank [SS]", function(state) self.SkipConfig["SS"] = state end)
+    UI:CreateToggle(tabName, "Pular Rank [SSS]", function(state) self.SkipConfig["SSS"] = state end)
+
+    UI:CreateToggle(tabName, "Ligar Auto Reroll", function(state) self:Toggle(state) end)
 end
 
 function Module:Toggle(state)
@@ -138,17 +131,14 @@ function Module:Toggle(state)
     local rollRemote = remoteEvents:FindFirstChild("StatRerollAutoRoll")
 
     if state then
-        -- 1. Envia pro servidor as configurações de quais ranks ele deve pular
         if skipRemote then
             pcall(function() skipRemote:FireServer(self.SkipConfig) end)
         end
-        
-        -- 2. Avisa ao servidor para ligar a roleta automática mirando no status escolhido
         if rollRemote then
             pcall(function() rollRemote:FireServer(true, "selected", {self.SelectedStat}) end)
         end
     else
-        -- 3. Avisa ao servidor para parar a roleta
+        -- Para o giro
         if rollRemote then
             pcall(function() rollRemote:FireServer(false, "selected", {self.SelectedStat}) end)
         end
