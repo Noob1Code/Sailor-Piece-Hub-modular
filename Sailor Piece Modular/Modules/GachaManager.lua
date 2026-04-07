@@ -6,10 +6,13 @@ local Module = { NoToggle = true }
 
 function Module:Init()
     self.TabName = "Gacha & Itens"
-    -- Carrega os sub-módulos para ter acesso às funções de construção de UI
+    
     self.Pity = Import("Modules/AutoPity")
     self.Merchant = Import("Modules/AutoMerchant")
     self.Reroll = Import("Modules/AutoReroll")
+    self.Pity:Init()
+    self.Merchant:Init()
+    self.Reroll:Init()
 end
 
 function Module:Clear()
@@ -36,7 +39,7 @@ end
 function Module:ShowReroll()
     self:Clear()
     self:CreateBackButton()
-    self.Reroll:BuildUI()
+    self.Reroll:BuildUI() 
 end
 
 function Module:ShowPity()
