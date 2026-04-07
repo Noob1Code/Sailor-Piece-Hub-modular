@@ -3,6 +3,7 @@
 -- ========================================================================
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LP = Players.LocalPlayer
 
 local UI = Import("Ui/UI")
 
@@ -95,17 +96,46 @@ local function CreateDynamicDropdown(container, defaultText, options, callback)
     return { Refresh = function(newOptions, resetText) defaultText = resetText; mainBtn.Text = defaultText .. " ▼"; populate(newOptions) end }
 end
 
+-- 🔥 Função auxiliar para desesconder toda a árvore da UI nativa
+local function UnhideAll(guiElement)
+    pcall(function()
+        if guiElement:IsA("Frame") or guiElement:IsA("ScrollingFrame") or guiElement:IsA("ImageLabel") then
+            guiElement.Visible = true
+        end
+    end)
+    for _, child in ipairs(guiElement:GetChildren()) do
+        UnhideAll(child)
+    end
+end
+
 function Module:BuildUI()
     local tabName = "Gacha & Itens"
+    UI:CreateSection(tabName, "🎲 Auto Reroll de Status")
     local container = UI.Tabs[tabName].Container
 
-    UI:CreateSection(tabName, "🎲 Auto Reroll de Status")
-
     UI:CreateButton(tabName, "🖥️ Abrir Menu de Reroll (Nativo)", function()
-        pcall(function()
+        task.spawn(function()
             local remote = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("GetStatRerollData")
+            
+            -- 1️⃣ Pede os dados oficiais da roleta ao Servidor
             if remote and remote:IsA("RemoteFunction") then
-                remote:InvokeServer()
+                pcall(function() remote:InvokeServer() end)
+            end
+            
+            task.wait(0.5)
+            
+            -- 2️⃣ Hack Visual: Força a interface escondida do jogo a pular na tela!
+            local pg = LP:FindFirstChild("PlayerGui")
+            if pg then
+                for _, gui in ipairs(pg:GetChildren()) do
+                    if gui:IsA("ScreenGui") then
+                        local name = gui.Name:lower()
+                        if name:find("reroll") or name:find("stat") then
+                            gui.Enabled = true
+                            UnhideAll(gui) -- Ativa a função recursiva para não perder nenhuma janela
+                        end
+                    end
+                end
             end
         end)
     end)
