@@ -197,6 +197,8 @@ function Module:StartFarm()
                              and ReplicatedStorage.Remotes:FindFirstChild("MerchantRemotes")
                              
         local purchaseRemote = merchantRemotes and merchantRemotes:FindFirstChild("PurchaseMerchantItem")
+            
+        local stockRemote = merchantRemotes and merchantRemotes:FindFirstChild("GetMerchantStock")
         
         local countdown = 0
 
@@ -208,7 +210,14 @@ function Module:StartFarm()
             end
 
             if countdown <= 0 then
-                self:UpdateStatus("Status: Tentando comprar itens silenciosamente...")
+                self:UpdateStatus("Status: Abrindo loja silenciosamente...")
+                
+                if stockRemote and stockRemote:IsA("RemoteFunction") then
+                    pcall(function() stockRemote:InvokeServer() end)
+                    task.wait(1)
+                end
+                
+                self:UpdateStatus("Status: Efetuando compras da lista...")
                 
                 if purchaseRemote and purchaseRemote:IsA("RemoteFunction") then
                     for _, itemName in ipairs(self.SelectedToBuy) do
