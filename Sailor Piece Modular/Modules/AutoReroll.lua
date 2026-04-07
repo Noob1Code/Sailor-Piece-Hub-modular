@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🎲 MÓDULO: AUTO REROLL STATS (INTERAÇÃO COM MENU NATIVO)
+-- 🎲 MÓDULO: AUTO REROLL STATS (INTERAÇÃO COM MENU NATIVO E SUB-MENU)
 -- ========================================================================
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -95,10 +95,11 @@ local function CreateDynamicDropdown(container, defaultText, options, callback)
     return { Refresh = function(newOptions, resetText) defaultText = resetText; mainBtn.Text = defaultText .. " ▼"; populate(newOptions) end }
 end
 
-function Module:Start()
+function Module:BuildUI()
     local tabName = "Gacha & Itens"
-    UI:CreateSection(tabName, "🎲 Auto Reroll de Status")
     local container = UI.Tabs[tabName].Container
+
+    UI:CreateSection(tabName, "🎲 Auto Reroll de Status")
 
     UI:CreateButton(tabName, "🖥️ Abrir Menu de Reroll (Nativo)", function()
         pcall(function()
@@ -123,6 +124,9 @@ function Module:Start()
     UI:CreateToggle(tabName, "Ligar Auto Reroll", function(state) self:Toggle(state) end)
 end
 
+function Module:Start()
+end
+
 function Module:Toggle(state)
     local remoteEvents = ReplicatedStorage:FindFirstChild("RemoteEvents")
     if not remoteEvents then return end
@@ -138,7 +142,6 @@ function Module:Toggle(state)
             pcall(function() rollRemote:FireServer(true, "selected", {self.SelectedStat}) end)
         end
     else
-        -- Para o giro
         if rollRemote then
             pcall(function() rollRemote:FireServer(false, "selected", {self.SelectedStat}) end)
         end
